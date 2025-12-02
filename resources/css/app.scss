@@ -1,0 +1,21 @@
+/* 1. Import Font Rethink Sans dari Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+
+/* 2. Override (Timpa) Variabel Font Bawaan Bootstrap */
+/* Penting: Ini harus ditulis SEBELUM @import 'bootstrap' */
+$font-family-sans-serif: 'Rethink Sans', sans-serif;
+
+/* 3. Import Bootstrap Utama */
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+/* 4. Custom CSS Tambahan */
+body {
+    background-color: #f8f9fa;
+    /* Tidak perlu tulis font-family lagi disini, karena sudah dihandle Bootstrap */
+}
+
+/* Optional: Perbaikan rendering font agar lebih smooth */
+body, button, input, textarea {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

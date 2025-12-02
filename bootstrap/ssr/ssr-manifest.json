@@ -1,0 +1,22 @@
+{
+  "\u0000plugin-vue:export-helper": [
+    "/build/assets/MainLayout-CefFmm5j.js",
+    "/build/assets/MainLayout-tn0RQdqM.css"
+  ],
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "resources/js/Layouts/MainLayout.vue": [
+    "/build/assets/MainLayout-CefFmm5j.js",
+    "/build/assets/MainLayout-tn0RQdqM.css"
+  ],
+  "resources/js/Layouts/MainLayout.vue?vue&type=style&index=0&scoped=21eab194&lang.css": [
+    "/build/assets/MainLayout-CefFmm5j.js",
+    "/build/assets/MainLayout-tn0RQdqM.css"
+  ],
+  "resources/js/Pages/About.vue": [
+    "/build/assets/About-B2baUK5j.js"
+  ],
+  "resources/js/Pages/Home.vue": [
+    "/build/assets/Home-Cy82aVOr.js"
+  ],
+  "resources/js/ssr.js": []
+}
