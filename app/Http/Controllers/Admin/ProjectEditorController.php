@@ -14,11 +14,17 @@ class ProjectEditorController extends Controller
     public function index()
     {
         // Ambil setting untuk halaman 'projects'
+        // Kita tambahkan default value untuk kolom baru agar tidak error saat pertama kali load
         $pageSetting = PageSetting::firstOrCreate(
             ['page_slug' => 'projects'],
             [
                 'hero_title' => 'Proyek & Referensi',
-                'hero_bg_path' => null
+                'hero_bg_path' => null,
+                // Default value untuk field baru
+                'project_title' => 'Daftar Proyek Terkini',
+                'project_description' => 'Menampilkan hasil karya profesional JBB Group',
+                'map_title' => 'Peta Sebaran Proyek',
+                'map_description' => 'Jangkauan layanan kami di seluruh Indonesia',
             ]
         );
 
@@ -27,22 +33,31 @@ class ProjectEditorController extends Controller
         ]);
     }
 
-    // --- UPDATE PAGE SETTING (HERO) ---
+    // --- UPDATE PAGE SETTING (HERO + TEXT SECTIONS) ---
     public function updatePageSetting(Request $request)
     {
         $request->validate([
+            // Validasi Hero
             'hero_title' => 'required|string|max:255',
             'hero_bg_path' => 'nullable|image|max:5120', // Max 5MB
+
+            // Validasi Text Section Proyek
+            'project_title' => 'nullable|string|max:255',
+            'project_description' => 'nullable|string|max:1000', // Agak panjang buat deskripsi
+
+            // Validasi Text Section Peta
+            'map_title' => 'nullable|string|max:255',
+            'map_description' => 'nullable|string|max:1000',
         ]);
 
-        $setting = PageSetting::where('page_slug', 'projects')->first();
+        $setting = PageSetting::where('page_slug', 'projects')->firstOrFail();
 
-        // Logic Upload Gambar (Metode Native Move - Anti Gagal)
+        // 1. Logic Upload Gambar (Metode Native Move - Anti Gagal)
         if ($request->hasFile('hero_bg_path')) {
-            // 1. Hapus file lama
+            // Hapus file lama
             $this->deleteOldFile($setting->hero_bg_path);
 
-            // 2. Upload baru
+            // Upload baru
             $file = $request->file('hero_bg_path');
             $fileName = $this->generateSafeFileName('hero-projects', $file);
             
@@ -50,14 +65,22 @@ class ProjectEditorController extends Controller
             $setting->hero_bg_path = $this->manualUpload($file, 'projects', $fileName);
         }
 
+        // 2. Simpan Data Text Hero
         $setting->hero_title = $request->hero_title;
+
+        // 3. Simpan Data Text Baru (Project & Map)
+        $setting->project_title = $request->project_title;
+        $setting->project_description = $request->project_description;
+        $setting->map_title = $request->map_title;
+        $setting->map_description = $request->map_description;
+
         $setting->save();
 
-        return redirect()->back()->with('success', 'Hero Page berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan halaman proyek berhasil diperbarui.');
     }
 
     // =====================================================================
-    // PRIVATE HELPERS (Copy dari Home/About Editor agar mandiri)
+    // PRIVATE HELPERS
     // =====================================================================
     
     private function generateSafeFileName($prefix, $file) {

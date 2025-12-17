@@ -12,4 +12,6 @@ class PageSetting extends Model
     // --- TAMBAHKAN BARIS INI ---
     // Artinya: "Izinkan semua kolom diisi secara massal, KECUALI kolom id"
     protected $guarded = ['id'];
+
+    
 }

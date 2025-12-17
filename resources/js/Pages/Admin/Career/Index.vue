@@ -1,8 +1,11 @@
 <script setup>
-import { ref, watch } from 'vue' // Tambah watch
+import { ref, watch } from 'vue' 
 import { Head, useForm, router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import draggable from 'vuedraggable' // Import Draggable
+import draggable from 'vuedraggable'
+import Swal from 'sweetalert2'
+import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 
 const props = defineProps({
     pageSetting: Object,
@@ -13,7 +16,7 @@ const props = defineProps({
 const activeTab = ref('settings')
 const isModalOpen = ref(false)
 const editingItem = ref(null)
-const previewImage = ref(null)
+const previewImage = ref(null) // Preview Modal Core Value
 
 // Local State untuk Drag & Drop
 const valuesList = ref([...props.coreValues])
@@ -23,22 +26,41 @@ watch(() => props.coreValues, (newVal) => {
     valuesList.value = [...newVal] 
 }, { deep: true })
 
+// --- CROPPER STATE ---
+const showCropperModal = ref(false)
+const cropperImgSrc = ref(null)
+const cropperRef = ref(null)
+const cropperType = ref('hero') // 'hero' | 'value'
+const previewHeroBg = ref(props.pageSetting?.hero_bg_path ? getImgUrl(props.pageSetting.hero_bg_path) : null)
+
 // --- FORMS ---
 
-// 1. Form Hero
+// 1. Form Hero & Settings (LENGKAP DENGAN TEXT BARU)
 const formSettings = useForm({
     _method: 'POST',
+    // Hero
     hero_title: props.pageSetting?.hero_title || 'Karir & Budaya',
     hero_bg_path: null, 
+    
+    // Intro Section
+    career_intro_title: props.pageSetting?.career_intro_title || '',
+    career_intro_desc: props.pageSetting?.career_intro_desc || '',
+
+    // Values Section Header
+    career_values_title: props.pageSetting?.career_values_title || '',
+    career_values_subtitle: props.pageSetting?.career_values_subtitle || '',
+
+    // Jobs Section Header
+    career_jobs_title: props.pageSetting?.career_jobs_title || '',
+    career_jobs_subtitle: props.pageSetting?.career_jobs_subtitle || '',
 })
-const previewHeroBg = ref(props.pageSetting?.hero_bg_path ? getImgUrl(props.pageSetting.hero_bg_path) : null)
 
 // 2. Form Modal Core Value
 const formValue = useForm({
     _method: 'POST',
     title: '',
     description: '',
-    image: null, // File
+    image: null, // File upload
     order: 0
 })
 
@@ -46,10 +68,50 @@ const formValue = useForm({
 function getImgUrl(path) {
     if (!path) return '/images/no-image.png'; 
     if (path.startsWith('http') || path.startsWith('blob:')) return path;
-    if (path.includes('defaults/')) return `/images/${path.replace(/^\/?storage\//, '')}`; 
     const cleanPath = path.replace(/^\/?storage\//, '');
     return `/storage/${cleanPath}?t=${new Date().getTime()}`;
 }
+
+const showSuccessToast = (msg) => {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: msg, showConfirmButton: false, timer: 3000 })
+}
+
+// --- CROPPER LOGIC ---
+const handleCropUpload = (e, type) => {
+    const file = e.target.files[0]; 
+    if(file) { 
+        cropperType.value = type; 
+        const reader = new FileReader();
+        reader.onload = (event) => { 
+            cropperImgSrc.value = event.target.result; 
+            showCropperModal.value = true; 
+            e.target.value = null 
+        }
+        reader.readAsDataURL(file)
+    }
+}
+
+const confirmCrop = () => {
+    const { canvas } = cropperRef.value.getResult();
+    if (canvas) {
+        canvas.toBlob((blob) => { 
+            const url = URL.createObjectURL(blob);
+            const file = new File([blob], "cropped_image.jpg", { type: "image/jpeg" });
+
+            if (cropperType.value === 'hero') {
+                formSettings.hero_bg_path = file; 
+                previewHeroBg.value = url; 
+            } else {
+                formValue.image = file;
+                previewImage.value = url;
+            }
+            
+            cancelCrop();
+        }, 'image/jpeg', 0.9)
+    }
+}
+const cancelCrop = () => { showCropperModal.value = false; cropperImgSrc.value = null }
+
 
 // --- ACTIONS ---
 
@@ -57,30 +119,35 @@ function getImgUrl(path) {
 const submitSettings = () => {
     formSettings.post('/admin/career-editor/page-setting', { 
         preserveScroll: true, forceFormData: true, 
-        onSuccess: () => { /* Toast */ } 
+        onSuccess: () => showSuccessToast('Settings disimpan!') 
     })
 }
-const handleHeroUpload = (e) => {
-    const file = e.target.files[0]; if(file) { formSettings.hero_bg_path = file; previewHeroBg.value = URL.createObjectURL(file); }
-}
 
-// Modal Logic
+// Modal Logic Core Value
 const openModal = (item = null) => {
     editingItem.value = item
-    formValue.clearErrors(); formValue.reset(); previewImage.value = null
+    formValue.clearErrors(); 
+    formValue.reset(); 
+    previewImage.value = null;
     
+    // Method Spoofing
+    formValue._method = item ? 'PUT' : 'POST';
+
     if (item) {
         // Edit Mode
         formValue.title = item.title || ''
         formValue.description = item.description || ''
         formValue.order = item.order || 0
-        if (item.image) previewImage.value = getImgUrl(item.image)
+        
+        // [FIX] Menggunakan 'item.image' sesuai database controller Anda
+        if (item.image) {
+            previewImage.value = getImgUrl(item.image)
+        }
     }
     isModalOpen.value = true
 }
 
 const closeModal = () => { isModalOpen.value = false; editingItem.value = null }
-const handleValueImageUpload = (e) => { const file = e.target.files[0]; if(file) { formValue.image = file; previewImage.value = URL.createObjectURL(file); } }
 
 const submitValue = () => {
     const url = editingItem.value 
@@ -89,14 +156,23 @@ const submitValue = () => {
         
     formValue.post(url, { 
         preserveScroll: true, forceFormData: true, 
-        onSuccess: () => closeModal() 
+        onSuccess: () => { 
+            closeModal();
+            showSuccessToast('Core Value disimpan!');
+        } 
     })
 }
 
 const deleteValue = (id) => {
-    if(confirm('Hapus Core Value ini?')) {
-        router.delete(`/admin/career-editor/value/${id}`, { preserveScroll: true })
-    }
+    Swal.fire({ title: 'Hapus item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' })
+    .then((result) => {
+        if (result.isConfirmed) {
+            router.delete(`/admin/career-editor/value/${id}`, { 
+                preserveScroll: true,
+                onSuccess: () => showSuccessToast('Item dihapus.')
+            })
+        }
+    })
 }
 
 // --- DRAG CHANGE HANDLER ---
@@ -104,7 +180,8 @@ const onDragChange = () => {
     router.post('/admin/career-editor/value/reorder', { 
         items: valuesList.value 
     }, { 
-        preserveScroll: true 
+        preserveScroll: true,
+        onSuccess: () => showSuccessToast('Urutan disimpan.')
     })
 }
 </script>
@@ -128,28 +205,82 @@ const onDragChange = () => {
 
         <div v-if="activeTab === 'settings'">
             <div class="nova-card p-4 border-start border-5 border-navy">
-                <h6 class="fw-bold text-navy mb-3">Pengaturan Hero Page</h6>
+                <h6 class="fw-bold text-navy mb-3">Pengaturan Halaman Karir</h6>
+                
                 <form @submit.prevent="submitSettings">
                     <div class="row g-4">
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-muted">HERO TITLE</label>
-                            <input v-model="formSettings.hero_title" type="text" class="form-control form-control-lg fw-bold" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-muted">BACKGROUND BANNER (16:9)</label>
-                            <div class="d-flex align-items-center gap-3 border rounded p-3 bg-light">
-                                <div class="preview-box border rounded overflow-hidden bg-secondary" style="width: 160px; height: 90px;">
-                                    <img v-if="previewHeroBg" :src="previewHeroBg" class="w-100 h-100 object-fit-cover">
-                                    <div v-else class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50 small">No Img</div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <input @change="handleHeroUpload" type="file" class="form-control" accept="image/*">
-                                    <small class="text-muted d-block mt-1">Format: JPG/PNG, Landscape.</small>
+                        
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold text-primary mb-3">#1 Hero Header</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">HERO TITLE</label>
+                                        <input v-model="formSettings.hero_title" type="text" class="form-control fw-bold" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">BACKGROUND BANNER (16:9)</label>
+                                        <div class="d-flex align-items-center gap-3 bg-white p-2 rounded border">
+                                            <div class="preview-box border rounded overflow-hidden bg-secondary position-relative" style="width: 120px; height: 67px;">
+                                                <img v-if="previewHeroBg" :src="previewHeroBg" class="w-100 h-100 object-fit-cover">
+                                                <div v-else class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50 small">No Img</div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <input @change="(e) => handleCropUpload(e, 'hero')" type="file" class="form-control form-control-sm" accept="image/*">
+                                                <small class="text-muted d-block mt-1">Otomatis membuka crop tool 16:9.</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-white border rounded">
+                                <h6 class="fw-bold text-navy mb-3">#2 Seksi Intro (Sambutan)</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">JUDUL INTRO</label>
+                                    <input v-model="formSettings.career_intro_title" type="text" class="form-control">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted">DESKRIPSI INTRO</label>
+                                    <textarea v-model="formSettings.career_intro_desc" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border rounded h-100">
+                                <h6 class="fw-bold text-navy mb-3">#3 Header Core Values</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">JUDUL</label>
+                                    <input v-model="formSettings.career_values_title" type="text" class="form-control">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted">SUBTITLE</label>
+                                    <input v-model="formSettings.career_values_subtitle" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border rounded h-100">
+                                <h6 class="fw-bold text-navy mb-3">#4 Header Lowongan Kerja</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">JUDUL</label>
+                                    <input v-model="formSettings.career_jobs_title" type="text" class="form-control">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted">SUBTITLE</label>
+                                    <input v-model="formSettings.career_jobs_subtitle" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-navy rounded-pill px-5" :disabled="formSettings.processing">Simpan Settings</button>
+                            <button type="submit" class="btn btn-navy rounded-pill px-5" :disabled="formSettings.processing">
+                                Simpan Semua Pengaturan
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -182,7 +313,7 @@ const onDragChange = () => {
                 <template #item="{ element }">
                     <div class="col-md-6 col-lg-3 draggable-item">
                         <div class="nova-card h-100 text-center p-4 position-relative group-hover-container cursor-move">
-                            <div class="mx-auto mb-3 rounded overflow-hidden shadow-sm" style="width: 100%; height: 150px;">
+                            <div class="mx-auto mb-3 rounded overflow-hidden shadow-sm bg-light" style="width: 100%; height: 200px;">
                                 <img :src="getImgUrl(element.image)" class="w-100 h-100 object-fit-cover">
                             </div>
                             
@@ -230,14 +361,14 @@ const onDragChange = () => {
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">GAMBAR ILUSTRASI</label>
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="preview-box border rounded overflow-hidden bg-light" style="width: 80px; height: 80px;">
+                        <div class="d-flex align-items-center gap-3 border rounded p-2 bg-light">
+                            <div class="preview-box border rounded overflow-hidden bg-white position-relative" style="width: 80px; height: 100px;">
                                 <img v-if="previewImage" :src="previewImage" class="w-100 h-100 object-fit-cover">
                                 <div v-else class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="bi bi-image"></i></div>
                             </div>
                             <div class="flex-grow-1">
-                                <input @change="handleValueImageUpload" type="file" class="form-control form-control-sm" accept="image/*">
-                                <small class="text-muted d-block mt-1">Rekomendasi: Gambar Persegi / Landscape.</small>
+                                <input @change="(e) => handleCropUpload(e, 'value')" type="file" class="form-control form-control-sm" accept="image/*">
+                                <small class="text-muted d-block mt-1">Rekomendasi: Gambar Portrait / 4:5.</small>
                             </div>
                         </div>
                     </div>
@@ -247,6 +378,31 @@ const onDragChange = () => {
                     </div>
 
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showCropperModal" class="modal-backdrop-custom d-flex align-items-center justify-content-center p-3" style="z-index: 1060;">
+        <div class="modal-content-custom bg-white rounded-4 shadow-lg w-100 overflow-hidden" style="max-width: 600px;">
+            <div class="modal-header px-4 py-3 bg-navy text-white d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold m-0">
+                    {{ cropperType === 'hero' ? 'Potong Background (16:9)' : 'Potong Gambar Value (4:5)' }}
+                </h6>
+                <button @click="cancelCrop" class="btn-close btn-close-white"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark">
+                 <cropper 
+                    ref="cropperRef" 
+                    class="cropper-container" 
+                    :src="cropperImgSrc" 
+                    :stencil-component="RectangleStencil" 
+                    :stencil-props="{ aspectRatio: cropperType === 'hero' ? 16/9 : 4/5 }" 
+                    image-class="cropper-image-contain"
+                />
+            </div>
+            <div class="modal-footer p-3 bg-white d-flex justify-content-end gap-2">
+                <button @click="cancelCrop" class="btn btn-light border rounded-pill">Batal</button>
+                <button @click="confirmCrop" class="btn btn-navy rounded-pill px-4"><i class="bi bi-crop me-2"></i> Potong & Gunakan</button>
             </div>
         </div>
     </div>
@@ -276,4 +432,8 @@ const onDragChange = () => {
 .object-fit-cover { object-fit: cover; }
 .form-control:focus { border-color: #002b49; box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
 .text-truncate-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* CROPPER STYLE */
+.cropper-container { height: 400px; background-color: #000; }
+:deep(.cropper-image-contain) { object-fit: contain; }
 </style>

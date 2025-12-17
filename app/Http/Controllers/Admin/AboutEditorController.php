@@ -74,8 +74,6 @@ class AboutEditorController extends Controller
     {
         $request->validate([
             'hero_title' => 'required|string',
-            'section_subtitle' => 'nullable|string',
-            'quote_explanation_text' => 'nullable|string',
             'hero_bg_path' => 'nullable|image|max:5120',
         ]);
 
@@ -89,8 +87,6 @@ class AboutEditorController extends Controller
         }
 
         $setting->hero_title = $request->hero_title;
-        $setting->section_subtitle = $request->section_subtitle; // Pastikan kolom ini ada di migration page_settings
-        $setting->quote_explanation_text = $request->quote_explanation_text; // Pastikan kolom ini ada
         
         $setting->save();
 
@@ -100,20 +96,19 @@ class AboutEditorController extends Controller
     // =====================================================================
     // 2. UPDATE BODY CONTENT (AboutContent)
     // =====================================================================
-    public function updateContent(Request $request)
+   public function updateContent(Request $request)
     {
-        $content = AboutContent::first();
+        $content = AboutContent::firstOrFail();
 
         $request->validate([
             'page_title' => 'required|string',
             'content_html' => 'required|string',
-            'quote' => 'required|string',
+            // 'quote' dihapus dari sini
         ]);
 
         $content->update([
             'page_title' => $request->page_title,
             'content_html' => $request->content_html,
-            'quote' => $request->quote,
         ]);
 
         return redirect()->back()->with('success', 'Konten utama diperbarui.');
@@ -154,76 +149,100 @@ class AboutEditorController extends Controller
     // =====================================================================
     // 4. MANAJEMEN TEAM (Leadership)
     // =====================================================================
-    public function storeTeam(Request $request)
+   public function storeLeader(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'title' => 'required|string', // Jabatan
-            'image_url' => 'required|image|max:5120'
+            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $path = null;
-        if ($request->hasFile('image_url')) {
-            $file = $request->file('image_url');
-            $fileName = $this->generateSafeFileName('team', $file);
-            $path = $this->manualUpload($file, 'teams', $fileName);
-        }
+        $path = $request->file('image')->store('team-images', 'public');
 
         Team::create([
             'name' => $request->name,
             'title' => $request->title,
-            'image_url' => $path,
-            'order' => Team::max('order') + 1
+            'image_url' => $path, // Pastikan kolom di database anda 'image_url'
         ]);
 
-        return redirect()->back()->with('success', 'Anggota tim ditambahkan.');
+        return redirect()->back()->with('success', 'Anggota tim berhasil ditambahkan');
     }
 
-    public function updateTeam(Request $request, $id)
+    // --- UPDATE (EDIT DATA) ---
+    public function updateLeader(Request $request, $id)
     {
-        $team = Team::findOrFail($id);
+        // Cari data berdasarkan ID, jika tidak ada akan return 404 (bukan 500)
+        $leader = Team::findOrFail($id);
 
-        if ($request->hasFile('image_url')) {
-            $this->deleteOldFile($team->image_url);
-            $file = $request->file('image_url');
-            $fileName = $this->generateSafeFileName('team', $file);
-            $team->image_url = $this->manualUpload($file, 'teams', $fileName);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Nullable: user tidak wajib ganti foto
+        ]);
+
+        $leader->name = $request->name;
+        $leader->title = $request->title;
+
+        // Logic Ganti Foto
+        if ($request->hasFile('image')) {
+            // Hapus foto lama
+            if ($leader->image_url && Storage::disk('public')->exists($leader->image_url)) {
+                Storage::disk('public')->delete($leader->image_url);
+            }
+            // Upload foto baru
+            $path = $request->file('image')->store('team-images', 'public');
+            $leader->image_url = $path;
         }
 
-        $team->name = $request->name;
-        $team->title = $request->title;
-        $team->save();
+        $leader->save();
 
-        return redirect()->back()->with('success', 'Data tim diperbarui.');
+        return redirect()->back()->with('success', 'Data tim berhasil diperbarui');
     }
 
-    public function deleteTeam($id)
+    // --- DELETE (HAPUS) ---
+    public function destroyLeader($id)
     {
-        $team = Team::findOrFail($id);
-        $this->deleteOldFile($team->image_url);
-        $team->delete();
-        return redirect()->back();
+        $leader = Team::findOrFail($id);
+        
+        if ($leader->image_url && Storage::disk('public')->exists($leader->image_url)) {
+            Storage::disk('public')->delete($leader->image_url);
+        }
+        
+        $leader->delete();
+        return redirect()->back()->with('success', 'Anggota tim dihapus');
     }
 
     // =====================================================================
     // 5. MANAJEMEN GALLERY (GalleryItem)
     // =====================================================================
     public function storeGallery(Request $request)
-    {
-        $request->validate(['image_url' => 'required|image|max:5120']);
+{
+    // 1. Validasi Input (Sesuaikan dengan nama field di Vue: 'image' dan 'caption')
+    $request->validate([
+        'image' => 'required|image|max:5120', // Ubah 'image_url' jadi 'image'
+        'caption' => 'nullable|string|max:255', // Tambahkan validasi caption
+    ]);
 
-        if ($request->hasFile('image_url')) {
-            $file = $request->file('image_url');
-            $fileName = $this->generateSafeFileName('gallery', $file);
-            $path = $this->manualUpload($file, 'about-gallery', $fileName);
+    // 2. Cek File pada input 'image'
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $fileName = $this->generateSafeFileName('gallery', $file);
+        
+        // Upload file
+        $path = $this->manualUpload($file, 'about-gallery', $fileName);
 
-            GalleryItem::create([
-                'image_url' => $path,
-                'order' => GalleryItem::max('order') + 1
-            ]);
-        }
-        return redirect()->back()->with('success', 'Foto galeri ditambahkan.');
+        // 3. Simpan ke Database
+        // Mapping: Input 'caption' -> Kolom 'caption'
+        // Mapping: Path hasil upload -> Kolom 'image_url'
+        GalleryItem::create([
+            'image_url' => $path, 
+            'caption' => $request->caption, // Masukkan caption ke database
+            'order' => GalleryItem::max('order') + 1
+        ]);
     }
+
+    return redirect()->back()->with('success', 'Foto galeri ditambahkan.');
+}
 
     public function deleteGallery($id)
     {
@@ -231,5 +250,25 @@ class AboutEditorController extends Controller
         $this->deleteOldFile($gallery->image_url);
         $gallery->delete();
         return redirect()->back();
+    }
+
+
+    public function updateQuoteSection(Request $request)
+    {
+        $content = AboutContent::firstOrFail();
+
+        $request->validate([
+            'section_subtitle' => 'nullable|string',
+            'quote' => 'required|string', // Quote divalidasi di sini
+            'quote_explanation_text' => 'nullable|string',
+        ]);
+
+        $content->update([
+            'section_subtitle' => $request->section_subtitle,
+            'quote' => $request->quote, // Update quote di sini
+            'quote_explanation_text' => $request->quote_explanation_text,
+        ]);
+
+        return redirect()->back()->with('success', 'Quote & Subtitle diperbarui.');
     }
 }

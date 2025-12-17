@@ -24,8 +24,8 @@ onMounted(() => {
 
             <div class="hero-mobile-fix">
                 <HeroPage 
-                    :title="pageSetting?.title || 'Karir & Budaya'" 
-                    :bgImage="pageSetting?.hero_bg || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2000&auto=format&fit=crop'" 
+                    :title="pageSetting?.hero_title || 'Karir & Budaya'" 
+                    :bgImage="pageSetting?.hero_bg_path || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2000&auto=format&fit=crop'" 
                 />
             </div>
 
@@ -33,9 +33,9 @@ onMounted(() => {
                 <div class="container text-center">
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
-                            <h2 class="section-title mb-3">Bergabung Bersama Keluarga Besar JBB</h2>
+                            <h2 class="section-title mb-3">{{ pageSetting?.career_intro_title || "Bergabung Bersama Keluarga Besar JBB"}}</h2>
                             <p class="text-muted fs-5">
-                                {{ pageSetting?.subtitle || 'Kami percaya bahwa SDM adalah aset terbesar perusahaan. Di JBB, kami tidak hanya membangun infrastruktur listrik, tetapi juga membangun masa depan talenta-talenta terbaik bangsa.' }}
+                                {{ pageSetting?.career_intro_desc || 'Kami percaya bahwa SDM adalah aset terbesar perusahaan. Di JBB, kami tidak hanya membangun infrastruktur listrik, tetapi juga membangun masa depan talenta-talenta terbaik bangsa.' }}
                             </p>
                         </div>
                     </div>
@@ -45,8 +45,8 @@ onMounted(() => {
             <section class="values-section py-5">
                 <div class="container">
                     <div class="text-center mb-5">
-                        <h3 class="section-heading text-white">Nilai Kerja Kami</h3>
-                        <p class="text-white-50">Pondasi yang membuat kami terus bertumbuh dan dipercaya</p>
+                        <h3 class="section-heading text-white">{{ pageSetting?.career_values_title || "Nilai Kerja Kami"}}</h3>
+                        <p class="text-white-50">{{ pageSetting?.career_values_subtitle || "Pondasi yang membuat kami terus bertumbuh dan dipercaya"}}</p>
                     </div>
 
                     <div class="row g-4">
@@ -67,8 +67,8 @@ onMounted(() => {
             <section class="jobs-section py-5 bg-light">
                 <div class="container">
                     <div class="text-center mb-5">
-                        <h2 class="section-title">Posisi Tersedia</h2>
-                        <p class="text-muted">Temukan peran yang sesuai dengan keahlian dan minat Anda</p>
+                    <h2 class="section-title">{{ pageSetting?.career_jobs_title || "Posisi Tersedia"}}</h2>
+                        <p class="text-muted">{{ pageSetting?.career_jobs_subtitle || "Temukan peran yang sesuai dengan keahlian dan minat Anda"}}</p>
                     </div>
 
                     <div class="row justify-content-center">
@@ -109,7 +109,7 @@ onMounted(() => {
                             <div v-else class="text-center py-5">
                                 <div class="text-muted fst-italic">
                                     <i class="bi bi-search display-4 d-block mb-3"></i>
-                                    Saat ini belum ada posisi yang tersedia. <br> Silakan cek kembali di lain waktu.
+                               Bagian ini ke database     Saat ini belum ada posisi yang tersedia. <br> Silakan cek kembali di lain waktu.
                                 </div>
                             </div>
 

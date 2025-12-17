@@ -27,17 +27,17 @@ const setActiveLocation = (id) => { activeLocationId.value = id }
 
             <div class="hero-mobile-fix">
                 <HeroPage 
-                    :title="pageSetting?.title || 'Proyek & Referensi'" 
+                    :title="pageSetting?.hero_title || 'Proyek & Referensi'" 
                     :subtitle="pageSetting?.subtitle || 'Portofolio pekerjaan terbaik kami di seluruh Indonesia'"
-                    :bgImage="pageSetting?.hero_bg || '/storage/defaults/project-hero.jpg'" 
+                    :bgImage="pageSetting?.hero_bg_path || '/storage/defaults/project-hero.jpg'" 
                 />
             </div>
 
             <section class="project-list-section py-5">
                 <div class="container">
                     <div class="section-header mb-5">
-                        <h3 class="text-blue fw-bold">Daftar Proyek Terkini</h3>
-                        <p class="text-muted">Menampilkan hasil karya profesional JBB Group.</p>
+                        <h3 class="text-blue fw-bold">{{ pageSetting?.project_title || 'Daftar Proyek Terkini' }}</h3>
+                        <p class="text-muted">{{ pageSetting?.project_description || 'Portfolio JBB' }}</p>
                     </div>
 
                     <div class="row g-4">
@@ -86,8 +86,8 @@ const setActiveLocation = (id) => { activeLocationId.value = id }
             <section class="map-section py-5 bg-light">
                 <div class="container">
                     <div class="text-center mb-5">
-                        <h3 class="text-blue fw-bold">Peta Sebaran Proyek</h3>
-                        <p class="text-muted">Jangkauan layanan kami di seluruh Indonesia</p>
+                        <h3 class="text-blue fw-bold">{{ pageSetting?.map_title || 'Peta Sebaran Lokasi' }}</h3>
+                        <p class="text-muted">{{ pageSetting?.map_description || 'Jangkauan layanan kami di seluruh Indonesia' }}</p>
                     </div>
 
                     <div class="map-container-card">

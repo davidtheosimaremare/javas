@@ -12,7 +12,12 @@ use App\Http\Controllers\Admin\CompanyProfileController as CompanyProfileControl
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\HomeEditorController as HomeEditorController;
 use App\Http\Controllers\Admin\CareerListController as CareerListController;
-
+use App\Http\Controllers\Admin\CareerEditorController as CareerEditorController;
+use App\Http\Controllers\Admin\NewsEditorController as NewsEditorController;
+use App\Http\Controllers\Admin\ContactEditorController as ContactEditorController;
+use App\Http\Controllers\Admin\ProjectEditorController as ProjectEditorController;
+use App\Http\Controllers\Admin\NewsListController as NewsListController;
+use App\Http\Controllers\Admin\AboutEditorController as AboutEditorController;
 use Inertia\Inertia;
 
 
@@ -76,6 +81,7 @@ Route::prefix('admin')->group(function () {
     // Update Sections
     Route::post('/about-editor/page-setting', [App\Http\Controllers\Admin\AboutEditorController::class, 'updatePageSetting']);
     Route::post('/about-editor/content', [App\Http\Controllers\Admin\AboutEditorController::class, 'updateContent']);
+    Route::post('/about-editor/quote', [App\Http\Controllers\Admin\AboutEditorController::class, 'updateQuoteSection']);
     
     // Visi Misi (VmItem)
     Route::post('/about-editor/misi', [App\Http\Controllers\Admin\AboutEditorController::class, 'storeMisi']);
@@ -83,9 +89,17 @@ Route::prefix('admin')->group(function () {
     Route::delete('/about-editor/misi/{id}', [App\Http\Controllers\Admin\AboutEditorController::class, 'deleteMisi']);
     
     // Team
-    Route::post('/about-editor/team', [App\Http\Controllers\Admin\AboutEditorController::class, 'storeTeam']);
-    Route::post('/about-editor/team/{id}', [App\Http\Controllers\Admin\AboutEditorController::class, 'updateTeam']);
-    Route::delete('/about-editor/team/{id}', [App\Http\Controllers\Admin\AboutEditorController::class, 'deleteTeam']);
+    // 1. Untuk Tambah Baru (POST)
+    Route::post('/about-editor/leader', [AboutEditorController::class, 'storeLeader'])->name('about.leader.store');
+    
+    // 2. Untuk Edit/Update (PUT)
+    Route::put('/about-editor/leader/{id}', [AboutEditorController::class, 'updateLeader'])->name('about.leader.update');
+    
+    // 3. Untuk Hapus (DELETE)
+    Route::delete('/about-editor/leader/{id}', [AboutEditorController::class, 'destroyLeader'])->name('about.leader.destroy');
+
+
+
 
     // Gallery
     Route::post('/about-editor/gallery', [App\Http\Controllers\Admin\AboutEditorController::class, 'storeGallery']);
