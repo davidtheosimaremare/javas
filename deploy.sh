@@ -3,23 +3,24 @@ set -e
 
 echo "--- Memulai Deployment ke JBB ---"
 
-# 1. Masuk mode maintenance (agar user tidak error saat proses)
+# 1. Masuk mode maintenance
 php artisan down || true
 
 # 2. Tarik codingan terbaru
 git pull origin main
 
-# 3. Install dependency PHP
-composer install --no-dev --optimize-autoloader
+# 3. Install dependency PHP (PENTING: Pakai composer.phar)
+php composer.phar install --no-dev --optimize-autoloader
 
-# 4. Update Database (Migrasi struktur tabel)
+# 4. Update Database
 php artisan migrate --force
+# php artisan db:seed --force  <-- Nyalakan ini kalau butuh seeder
 
-# 5. Build Frontend Inertia (PENTING: agar update tampilan masuk)
+# 5. Build Frontend Inertia
 npm install
 npm run build
 
-# 6. Bersihkan Cache Laravel
+# 6. Bersihkan Cache
 php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
