@@ -55,7 +55,7 @@ $COMPOSER_CMD install --no-dev --optimize-autoloader --no-interaction
 
 # 5. Install & Build Frontend (di background, website masih jalan)
 echo "🎨 Building frontend assets..."
-npm ci --prefer-offline --no-audit
+npm install
 npm run build
 
 # 6. Verify build berhasil
