@@ -90,6 +90,11 @@ class ProjectEditorController extends Controller
     }
 
     private function manualUpload($file, $folderName, $fileName) {
+        if (config('filesystems.disks.public.driver') === 's3') {
+            $path = Storage::disk('public')->putFileAs($folderName, $file, $fileName);
+            return '/storage/' . $path;
+        }
+
         $destinationPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $folderName);
         if (!file_exists($destinationPath)) {
             mkdir($destinationPath, 0777, true);
@@ -101,6 +106,14 @@ class ProjectEditorController extends Controller
     private function deleteOldFile($dbPath) {
         if ($dbPath) {
             $relativePath = str_replace('/storage/', '', $dbPath);
+            
+            if (config('filesystems.disks.public.driver') === 's3') {
+                if (Storage::disk('public')->exists($relativePath)) {
+                    Storage::disk('public')->delete($relativePath);
+                }
+                return;
+            }
+
             $relativePath = str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
             $absolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $relativePath);
             

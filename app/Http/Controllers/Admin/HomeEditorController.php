@@ -47,47 +47,16 @@ class HomeEditorController extends Controller
             $cleanTitle = preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', strtolower($request->title)));
             $cleanTitle = substr($cleanTitle, 0, 30); // Batasi panjang
 
-            // 2. DETEKSI EKSTENSI (LEBIH AMAN)
-            // Kita coba ambil extension, kalau gagal kita default ke 'jpg'
             $extension = $file->getClientOriginalExtension();
             if (empty($extension)) {
                 $extension = $file->guessExtension() ?? 'jpg';
             }
 
-            // Gabungkan: judul-waktu.ext
             $fileName = $cleanTitle . '-' . time() . '.' . $extension;
 
-            // 3. TENTUKAN PATH FISIK (GUNAKAN DIRECTORY_SEPARATOR)
-            // Ini agar Windows pakai backslash (\), Linux pakai slash (/)
-            $storagePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sliders');
-
-            // 4. BUAT FOLDER JIKA BELUM ADA
-            if (!file_exists($storagePath)) {
-                mkdir($storagePath, 0777, true);
-            }
-
-            // 5. PINDAHKAN FILE (MOVE)
-            // destination: C:\xampp\...\sliders\nama.jpg
-            $file->move($storagePath, $fileName);
-
-            // 6. HAPUS GAMBAR LAMA (CLEANUP)
-            if ($slider->image) {
-                // Ubah URL path menjadi File Path sistem
-                $oldRelativePath = str_replace('/storage/', '', $slider->image);
-                // Fix slash arahnya biar sesuai OS
-                $oldRelativePath = str_replace('/', DIRECTORY_SEPARATOR, $oldRelativePath);
-                
-                $oldAbsolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $oldRelativePath);
-
-                // Hapus file jika ada dan bukan default
-                if (file_exists($oldAbsolutePath) && !str_contains($slider->image, 'defaults/')) {
-                    @unlink($oldAbsolutePath); // Pakai @ agar tidak error jika file sedang dikunci Windows
-                }
-            }
-
-            // 7. SIMPAN KE DATABASE (GUNAKAN SLASH BIASA / UNTUK URL)
-            // Browser selalu butuh forward slash (/), jangan backslash (\)
-            $slider->image = '/storage/sliders/' . $fileName;
+            // 2. Upload & Cleanup
+            $this->deleteOldFile($slider->image);
+            $slider->image = $this->manualUpload($file, 'sliders', $fileName);
         }
 
         $slider->title = $request->title;
@@ -102,7 +71,7 @@ class HomeEditorController extends Controller
     }
 
 
-  public function updateService(Request $request, $id)
+    public function updateService(Request $request, $id)
     {
         $service = Service::findOrFail($id);
 
@@ -122,37 +91,14 @@ class HomeEditorController extends Controller
             $extension = $file->getClientOriginalExtension() ?: 'jpg';
             $fileName = $cleanTitle . '-' . time() . '.' . $extension;
 
-            // 2. Folder Fisik
-            $destinationPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'services');
-
-            // 3. Buat Folder
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
-            }
-
-            // 4. Pindahkan File
-            $file->move($destinationPath, $fileName);
-
-            // 5. Hapus Lama
-            if ($service->image) {
-                $oldRelativePath = str_replace('/storage/', '', $service->image);
-                $oldRelativePath = str_replace('/', DIRECTORY_SEPARATOR, $oldRelativePath);
-                $oldAbsolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $oldRelativePath);
-
-                if (file_exists($oldAbsolutePath) && !str_contains($service->image, 'defaults/')) {
-                    @unlink($oldAbsolutePath);
-                }
-            }
-
-            // 6. Simpan Path
-            $service->image = '/storage/services/' . $fileName;
+            // 2. Upload & Cleanup
+            $this->deleteOldFile($service->image);
+            $service->image = $this->manualUpload($file, 'services', $fileName);
         }
 
         $service->title = $request->title;
         $service->description = $request->description;
         $service->color = $request->color;
-        // --- SIMPAN LINK DISINI ---
-        // Jika kosong, default ke '#' atau '/services/slug-judul' nanti
         $service->link = $request->link ?? '#'; 
         $service->is_active = $request->boolean('is_active');
 
@@ -275,16 +221,12 @@ class HomeEditorController extends Controller
             ['hero_title' => 'Selamat Datang', 'hero_bg_path' => null]
         );
 
-        // --- LOGIC UPLOAD BACKGROUND (METODE ANTI-GAGAL) ---
         if ($request->hasFile('stats_bg_image')) {
             $file = $request->file('stats_bg_image');
 
-            // 1. Buat Nama File Bersih (SEO Friendly)
-            // Ambil dari judul stats, bersihkan karakter aneh
             $cleanName = preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', strtolower($request->stats_title)));
             $cleanName = substr($cleanName, 0, 30); 
             
-            // Deteksi ekstensi manual agar tidak error
             $extension = $file->getClientOriginalExtension();
             if (empty($extension)) {
                 $extension = $file->guessExtension() ?? 'jpg';
@@ -292,33 +234,9 @@ class HomeEditorController extends Controller
 
             $fileName = $cleanName . '-bg-' . time() . '.' . $extension;
 
-            // 2. Tentukan Lokasi Fisik (Folder 'stats')
-            // Menggunakan storage_path agar path absolut terbaca Windows
-            $destinationPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'stats');
-
-            // 3. Buat Folder Manual Jika Belum Ada
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
-            }
-
-            // 4. Pindahkan File (Native Move)
-            $file->move($destinationPath, $fileName);
-
-            // 5. Hapus Background Lama (Cleanup)
-            if ($setting->stats_bg_image) {
-                // Ubah URL path menjadi File Path fisik
-                $oldRelativePath = str_replace('/storage/', '', $setting->stats_bg_image);
-                $oldRelativePath = str_replace('/', DIRECTORY_SEPARATOR, $oldRelativePath);
-                $oldAbsolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $oldRelativePath);
-
-                // Hapus file
-                if (file_exists($oldAbsolutePath)) {
-                    @unlink($oldAbsolutePath);
-                }
-            }
-
-            // 6. Simpan Path ke Database
-            $setting->stats_bg_image = '/storage/stats/' . $fileName;
+            // Upload & Cleanup
+            $this->deleteOldFile($setting->stats_bg_image);
+            $setting->stats_bg_image = $this->manualUpload($file, 'stats', $fileName);
         }
 
         // Simpan Text
@@ -356,6 +274,43 @@ class HomeEditorController extends Controller
         $project->save();
 
         return redirect()->back()->with('success', 'Status Featured proyek berhasil diubah.');
+    }
+
+    // =====================================================================
+    // CLOUD / MINIO COMPATIBLE PRIVATE HELPERS
+    // =====================================================================
+    private function manualUpload($file, $folderName, $fileName) {
+        if (config('filesystems.disks.public.driver') === 's3') {
+            $path = Storage::disk('public')->putFileAs($folderName, $file, $fileName);
+            return '/storage/' . $path;
+        }
+
+        $destinationPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $folderName);
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
+        $file->move($destinationPath, $fileName);
+        return '/storage/' . $folderName . '/' . $fileName;
+    }
+
+    private function deleteOldFile($dbPath) {
+        if ($dbPath) {
+            $relativePath = str_replace('/storage/', '', $dbPath);
+            
+            if (config('filesystems.disks.public.driver') === 's3') {
+                if (Storage::disk('public')->exists($relativePath)) {
+                    Storage::disk('public')->delete($relativePath);
+                }
+                return;
+            }
+
+            $relativePath = str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+            $absolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $relativePath);
+            
+            if (file_exists($absolutePath) && !str_contains($dbPath, 'defaults/')) {
+                @unlink($absolutePath);
+            }
+        }
     }
     
 }

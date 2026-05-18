@@ -165,6 +165,11 @@ class CareerListController extends Controller
     }
 
     private function manualUpload($file, $folderName, $fileName) {
+        if (config('filesystems.disks.public.driver') === 's3') {
+            $path = Storage::disk('public')->putFileAs($folderName, $file, $fileName);
+            return '/storage/' . $path;
+        }
+
         $folderNameOS = str_replace('/', DIRECTORY_SEPARATOR, $folderName);
         $destinationPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $folderNameOS);
         if (!file_exists($destinationPath)) mkdir($destinationPath, 0777, true);
@@ -175,6 +180,14 @@ class CareerListController extends Controller
     private function deleteOldFile($dbPath) {
         if ($dbPath) {
             $relativePath = str_replace('/storage/', '', $dbPath);
+            
+            if (config('filesystems.disks.public.driver') === 's3') {
+                if (Storage::disk('public')->exists($relativePath)) {
+                    Storage::disk('public')->delete($relativePath);
+                }
+                return;
+            }
+
             $relativePath = str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
             $absolutePath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $relativePath);
             if (file_exists($absolutePath) && !str_contains($dbPath, 'defaults/')) @unlink($absolutePath);
