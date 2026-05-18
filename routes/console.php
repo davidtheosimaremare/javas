@@ -53,3 +53,28 @@ Artisan::command('storage:migrate-to-minio', function () {
     $bar->finish();
     $this->info("\n🎉 Migrasi selesai! Berhasil mengunggah {$successCount} dari {$total} file ke MinIO!");
 })->purpose('Migrate all local public storage files to MinIO');
+
+Artisan::command('storage:make-bucket-public', function () {
+    $this->info('⚙️ Mengatur policy bucket MinIO jbb menjadi Public...');
+
+    try {
+        $client = \Illuminate\Support\Facades\Storage::disk('public')->getClient();
+        $client->putBucketPolicy([
+            'Bucket' => env('MINIO_BUCKET', 'jbb'),
+            'Policy' => json_encode([
+                'Version' => '2012-10-17',
+                'Statement' => [
+                    [
+                        'Effect' => 'Allow',
+                        'Principal' => ['AWS' => '*'],
+                        'Action' => ['s3:GetObject'],
+                        'Resource' => ['arn:aws:s3:::' . env('MINIO_BUCKET', 'jbb') . '/*']
+                    ]
+                ]
+            ])
+        ]);
+        $this->info('✅ Berhasil! Bucket MinIO jbb sekarang sudah Public (ReadOnly untuk anonim).');
+    } catch (\Exception $e) {
+        $this->error('❌ Gagal mengatur policy: ' . $e->getMessage());
+    }
+})->purpose('Set MinIO bucket policy to public read-only');
