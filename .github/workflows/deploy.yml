@@ -1,0 +1,26 @@
+name: Auto Deploy to Hestia
+
+on:
+  push:
+    branches: [ main ] # Pastikan branch utama Anda bernama 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            # Masuk ke folder project
+            cd /home/${{ secrets.SSH_USERNAME }}/web/jbb.co.id/public_html
+            
+            # Beri izin agar script bisa dijalankan
+            chmod +x deploy.sh
+            
+            # Jalankan script deployment
+            ./deploy.sh
