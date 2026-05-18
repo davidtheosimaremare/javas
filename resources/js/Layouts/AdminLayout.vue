@@ -1,16 +1,27 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 
 // --- STATE ---
 const isSidebarOpen = ref(true)
 const isMobile = ref(false)
 const searchQuery = ref('')
+const isPagesOpen = ref(false)
+const isDropdownOpen = ref(false)
 
 // --- LOGIC HELPER: CEK URL AKTIF ---
 // Fungsi ini mengecek apakah URL browser saat ini berawalan dengan path tertentu
 const page = usePage()
 const isActive = (path) => page.url.startsWith(path)
+
+const checkPagesActive = () => {
+    return isActive('/admin/home-editor') || 
+           isActive('/admin/about-editor') || 
+           isActive('/admin/project-editor') || 
+           isActive('/admin/career-editor') || 
+           isActive('/admin/news-editor') || 
+           isActive('/admin/contact-editor')
+}
 
 // --- LOGIC RESPONSIVE ---
 const checkScreenSize = () => {
@@ -34,7 +45,16 @@ const logout = () => {
     router.post('/admin/logout')
 }
 
+// Watch page.url to automatically open/close submenu on navigation
+watch(() => page.url, () => {
+    if (checkPagesActive()) {
+        isPagesOpen.value = true
+    }
+    isDropdownOpen.value = false
+})
+
 onMounted(() => {
+    isPagesOpen.value = checkPagesActive()
     checkScreenSize()
     window.addEventListener('resize', checkScreenSize)
 })
@@ -87,25 +107,24 @@ onUnmounted(() => {
                     <li class="nav-label mt-4">CONTENT MANAGEMENT</li>
 
                     <li class="nav-item">
-                   <a class="nav-link has-arrow" 
-                    :class="{ 
-                        'collapsed': !isActive('/admin/home-editor') && !isActive('/admin/about-editor'), 
-                        'active': isActive('/admin/home-editor') && isActive('/admin/about-editor') 
-                    }" 
-                    data-bs-toggle="collapse" 
-                    href="#menuPages" 
-                    role="button" 
-                    :aria-expanded="(isActive('/admin/home-editor') || isActive('/admin/about-editor')) ? 'true' : 'false'">
-                        
-                        <i class="bi bi-layout-text-window-reverse icon"></i>
-                        <span class="label">Halaman Web</span>
-                        <i class="bi bi-chevron-down ms-auto arrow"></i>
-                    </a>
+                        <button 
+                            type="button" 
+                            class="nav-link has-arrow w-100 border-0 bg-transparent text-start" 
+                            :class="{ 
+                                'collapsed': !isPagesOpen, 
+                                'active': checkPagesActive() 
+                            }" 
+                            @click="isPagesOpen = !isPagesOpen"
+                            :aria-expanded="isPagesOpen ? 'true' : 'false'">
+                            
+                            <i class="bi bi-layout-text-window-reverse icon"></i>
+                            <span class="label">Halaman Web</span>
+                            <i class="bi bi-chevron-down ms-auto arrow"></i>
+                        </button>
                         
                         <div class="collapse" 
-                             :class="{ 'show': isActive('/admin/home-editor') || isActive('/admin/about-editor') || isActive('/admin/project-editor') || isActive('/admin/career-editor') || isActive('/admin/news-editor') || isActive('/admin/contact-editor') }" 
-                             id="menuPages"
-                             data-bs-parent="#menuAccordion">
+                             :class="{ 'show': isPagesOpen }" 
+                             id="menuPages">
                             <ul class="nav flex-column sub-menu">
                                 
                                 <li>
@@ -153,15 +172,15 @@ onUnmounted(() => {
                                         </Link>
                                     </li>
                                 <li>
-    <Link 
-        href="/admin/contact-editor" 
-        class="sub-link" 
-        :class="{ 'active': isActive('/admin/contact-editor') }" 
-        @click="handleNavClick"
-    >
-        Contact
-    </Link>
-</li>
+                                    <Link 
+                                        href="/admin/contact-editor" 
+                                        class="sub-link" 
+                                        :class="{ 'active': isActive('/admin/contact-editor') }" 
+                                        @click="handleNavClick"
+                                    >
+                                        Contact
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
                     </li>
@@ -191,29 +210,26 @@ onUnmounted(() => {
                     <li class="nav-label mt-4">Project Management</li>
 
                     <li class="nav-item">
-                        <Link href="#" class="nav-link" @click="handleNavClick">
+                        <a href="#" class="nav-link" @click.prevent="handleNavClick">
                             <i class="bi bi-newspaper icon"></i>
                             <span class="label">Project Timeline</span>
-                        </Link>
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <Link href="#" class="nav-link" @click="handleNavClick">
+                        <a href="#" class="nav-link" @click.prevent="handleNavClick">
                             <i class="bi bi-newspaper icon"></i>
                             <span class="label">Team</span>
-                        </Link>
+                        </a>
                     </li>
-
-
-                    
 
                     <li class="nav-label mt-4">SYSTEM</li>
 
                     <li class="nav-item">
-                        <Link href="#" class="nav-link" @click="handleNavClick">
+                        <a href="#" class="nav-link" @click.prevent="handleNavClick">
                             <i class="bi bi-people-fill icon"></i>
                             <span class="label">Administrator</span>
-                        </Link>
+                        </a>
                     </li>
 
                     <li class="nav-item mt-4 d-lg-none">
@@ -258,12 +274,12 @@ onUnmounted(() => {
                         <span class="badge-dot"></span>
                     </button>
                     <div class="dropdown">
-                        <a href="#" class="user-dropdown" data-bs-toggle="dropdown">
+                        <button type="button" class="user-dropdown border-0 bg-transparent d-flex align-items-center" @click="isDropdownOpen = !isDropdownOpen">
                             <div class="avatar-sm">A</div>
                             <span class="d-none d-md-block ms-2 fw-bold text-dark">Admin JBB</span>
                             <i class="bi bi-chevron-down ms-2 fs-xs text-muted"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-3 mt-2">
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-3 mt-2" :class="{ 'show': isDropdownOpen }" style="position: absolute; right: 0;">
                             <li><button class="dropdown-item rounded-2 text-danger" @click="logout">Logout</button></li>
                         </ul>
                     </div>
