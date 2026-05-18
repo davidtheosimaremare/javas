@@ -74,8 +74,9 @@ ssh -p $VPS_PORT $VPS_USER@$VPS_IP << 'EOF'
   sudo docker exec -u root $CONTAINER_ID rm -f /tmp/public-storage.tar.gz
   rm -f /tmp/public-storage.tar.gz
   
-  # Pastikan link storage diperbarui
-  sudo docker exec $CONTAINER_ID php artisan storage:link --force || true
+  # Pastikan link storage diperbarui menggunakan ln -sf agar 100% aman dan tidak bergantung pada path PHP
+  echo "🔗 Memperbarui symbolic link storage..."
+  sudo docker exec -u root $CONTAINER_ID ln -sf /app/storage/app/public /app/public/storage
   
   echo "✅ Sinkronisasi gambar ke volume hosting selesai dengan aman!"
 EOF
