@@ -1,10 +1,22 @@
 <script setup>
-import { Link, router } from '@inertiajs/vue3' 
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { usePage, Link, router } from '@inertiajs/vue3' 
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+
+const page = usePage()
 
 // --- ASSETS ---
-const logoLight = '/images/logo-light.png'
-const logoColor = '/images/logo.png'
+const logoLight = computed(() => {
+  return page.props.globalData?.profile?.logo_primary 
+    ? '/storage/' + page.props.globalData.profile.logo_primary 
+    : '/images/logo-light.png'
+})
+
+const logoColor = computed(() => {
+  return page.props.globalData?.profile?.logo_secondary 
+    ? '/storage/' + page.props.globalData.profile.logo_secondary 
+    : '/images/logo.png'
+})
+
 // Bendera
 const indoFlag = '/images/indo-flag.png'
 const engFlag = '/images/en-flag.png' // <-- BARU: Tambahkan ini (pastikan file ada di folder public/images)
