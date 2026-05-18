@@ -111,6 +111,12 @@ class ProjectController extends Controller
 
     private function uploadFile($file, $folder) {
         $fileName = Str::random(10) . '-' . time() . '.' . $file->getClientOriginalExtension();
+        
+        if (config('filesystems.disks.public.driver') === 's3') {
+            $path = \Illuminate\Support\Facades\Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            return '/storage/' . $path;
+        }
+
         $path = storage_path('app/public/' . $folder);
         if (!file_exists($path)) mkdir($path, 0777, true);
         $file->move($path, $fileName);
@@ -120,6 +126,14 @@ class ProjectController extends Controller
     private function deleteFile($path) {
         if (!$path) return;
         $cleanPath = str_replace('/storage/', '', $path);
+        
+        if (config('filesystems.disks.public.driver') === 's3') {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
+            }
+            return;
+        }
+
         $absPath = storage_path('app/public/' . $cleanPath);
         if (file_exists($absPath)) @unlink($absPath);
     }
