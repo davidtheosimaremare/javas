@@ -63,7 +63,7 @@ class HomeEditorController extends Controller
         $slider->nav_title = $request->nav_title;
         $slider->description = $request->description;
         $slider->link = $request->link ?? '#';
-        $slider->is_active = $request->is_active;
+        $slider->is_active = $request->boolean('is_active');
         
         $slider->save();
 
