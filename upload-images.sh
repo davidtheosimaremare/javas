@@ -67,12 +67,12 @@ ssh -p $VPS_PORT $VPS_USER@$VPS_IP << 'EOF'
   # Copy archive ke dalam container
   docker cp /tmp/public-storage.tar.gz $CONTAINER_ID:/tmp/public-storage.tar.gz
   
-  # Ekstrak di dalam container ke path volume storage/app/public
+  # Ekstrak di dalam container ke path volume storage/app/public (menggunakan -u root agar tidak bermasalah dengan permission)
   echo "📂 Mengekstrak gambar ke folder storage persistent..."
-  docker exec $CONTAINER_ID bash -c "mkdir -p /app/storage/app/public && tar -xzf /tmp/public-storage.tar.gz -C /app/storage/app/public && chmod -R 775 /app/storage/app/public"
+  docker exec -u root $CONTAINER_ID bash -c "mkdir -p /app/storage/app/public && tar -xzf /tmp/public-storage.tar.gz -C /app/storage/app/public && chmod -R 777 /app/storage/app/public && chown -R 1000:1000 /app/storage/app/public || chmod -R 777 /app/storage/app/public"
   
   # Bersihkan temporary files di container dan VPS host
-  docker exec $CONTAINER_ID rm -f /tmp/public-storage.tar.gz
+  docker exec -u root $CONTAINER_ID rm -f /tmp/public-storage.tar.gz
   rm -f /tmp/public-storage.tar.gz
   
   # Pastikan link storage diperbarui
