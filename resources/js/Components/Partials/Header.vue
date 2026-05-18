@@ -171,7 +171,7 @@ onUnmounted(() => {
       <div class="container px-4 px-lg-4">
 
         <Link class="navbar-brand d-lg-none" href="/">
-            <img :src="isScrolled ? logoColor : logoLight" width="40" alt="Logo">
+            <img :src="isScrolled ? logoColor : logoLight" style="height: 40px; width: auto; max-width: 150px; object-fit: contain;" alt="Logo">
         </Link>
 
         <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
@@ -191,7 +191,7 @@ onUnmounted(() => {
             </li>
           </ul>
           <Link class="navbar-brand ms-auto" href="/">
-            <img :src="isScrolled ? logoColor : logoLight" width="50" height="50" alt="Logo">
+            <img :src="isScrolled ? logoColor : logoLight" style="height: 50px; width: auto; max-width: 200px; object-fit: contain;" alt="Logo">
           </Link>
         </div>
 
