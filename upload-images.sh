@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 VPS_IP="101.32.116.27"
-VPS_USER="root"
+VPS_USER="ubuntu"
 VPS_PORT="22"
 
 echo "=========================================================="
@@ -47,13 +47,12 @@ echo "Menghubungkan ke VPS via SSH..."
 ssh -p $VPS_PORT $VPS_USER@$VPS_IP << 'EOF'
   set -e
   
-  # Cari container aplikasi yang sedang berjalan
-  # Kita cari container yang namanya mirip dengan 'jbb' atau 'javas' atau container web app
-  CONTAINER_ID=$(docker ps --format "{{.Names}}" | grep -E "jbb|javas" | grep -v "database" | grep -v "redis" | head -n 1)
+  # Cari container aplikasi yang sedang berjalan menggunakan sudo docker
+  CONTAINER_ID=$(sudo docker ps --format "{{.Names}}" | grep -E "jbb|javas" | grep -v "database" | grep -v "redis" | head -n 1)
   
   if [ -z "$CONTAINER_ID" ]; then
     # Fallback: cari container non-database, non-redis, non-coolify yang running
-    CONTAINER_ID=$(docker ps --format '{{.Names}}' | grep -vE "db|database|redis|coolify|postgres|mysql" | head -n 1)
+    CONTAINER_ID=$(sudo docker ps --format '{{.Names}}' | grep -vE "db|database|redis|coolify|postgres|mysql" | head -n 1)
   fi
   
   if [ -z "$CONTAINER_ID" ]; then
@@ -64,19 +63,19 @@ ssh -p $VPS_PORT $VPS_USER@$VPS_IP << 'EOF'
   
   echo "✅ Menemukan container aplikasi: $CONTAINER_ID"
   
-  # Copy archive ke dalam container
-  docker cp /tmp/public-storage.tar.gz $CONTAINER_ID:/tmp/public-storage.tar.gz
+  # Copy archive ke dalam container menggunakan sudo docker
+  sudo docker cp /tmp/public-storage.tar.gz $CONTAINER_ID:/tmp/public-storage.tar.gz
   
   # Ekstrak di dalam container ke path volume storage/app/public (menggunakan -u root agar tidak bermasalah dengan permission)
   echo "📂 Mengekstrak gambar ke folder storage persistent..."
-  docker exec -u root $CONTAINER_ID bash -c "mkdir -p /app/storage/app/public && tar -xzf /tmp/public-storage.tar.gz -C /app/storage/app/public && chmod -R 777 /app/storage/app/public && chown -R 1000:1000 /app/storage/app/public || chmod -R 777 /app/storage/app/public"
+  sudo docker exec -u root $CONTAINER_ID bash -c "mkdir -p /app/storage/app/public && tar -xzf /tmp/public-storage.tar.gz -C /app/storage/app/public && chmod -R 777 /app/storage/app/public && chown -R 1000:1000 /app/storage/app/public || chmod -R 777 /app/storage/app/public"
   
   # Bersihkan temporary files di container dan VPS host
-  docker exec -u root $CONTAINER_ID rm -f /tmp/public-storage.tar.gz
+  sudo docker exec -u root $CONTAINER_ID rm -f /tmp/public-storage.tar.gz
   rm -f /tmp/public-storage.tar.gz
   
   # Pastikan link storage diperbarui
-  docker exec $CONTAINER_ID php artisan storage:link --force || true
+  sudo docker exec $CONTAINER_ID php artisan storage:link --force || true
   
   echo "✅ Sinkronisasi gambar ke volume hosting selesai dengan aman!"
 EOF
