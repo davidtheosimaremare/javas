@@ -124,7 +124,7 @@ const closeModal = () => { isModalOpen.value = false; editingItem.value = null; 
 const handleImageUpload = (e) => {
     const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { cropperImgSrc.value = ev.target.result; showCropperModal.value = true; e.target.value = null }; reader.readAsDataURL(file) }
 }
-const cropImage = () => { const { canvas } = cropperRef.value.getResult(); if (canvas) { canvas.toBlob((blob) => { form.image = blob; previewImage.value = URL.createObjectURL(blob); cancelCrop() }, 'image/jpeg', 0.9) } }
+const cropImage = () => { const { canvas } = cropperRef.value.getResult(); if (canvas) { canvas.toBlob((blob) => { const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' }); form.image = file; previewImage.value = URL.createObjectURL(blob); cancelCrop() }, 'image/jpeg', 0.9) } }
 const cancelCrop = () => { showCropperModal.value = false; cropperImgSrc.value = null }
 const onDragChange = () => { router.post('/admin/home-editor/slider/reorder', { items: sliderList.value }, { preserveScroll: true }) }
 

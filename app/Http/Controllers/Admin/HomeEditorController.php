@@ -60,7 +60,9 @@ class HomeEditorController extends Controller
                 $slider->image = $this->manualUpload($file, 'sliders', $fileName);
             } catch (\Throwable $e) {
                 file_put_contents(storage_path('logs/upload_error.log'), $e->getMessage() . "\n" . $e->getTraceAsString());
-                throw $e;
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'image' => 'Gagal mengunggah gambar ke server: ' . $e->getMessage()
+                ]);
             }
         }
 
@@ -97,8 +99,15 @@ class HomeEditorController extends Controller
             $fileName = $cleanTitle . '-' . time() . '.' . $extension;
 
             // 2. Upload & Cleanup
-            $this->deleteOldFile($service->image);
-            $service->image = $this->manualUpload($file, 'services', $fileName);
+            try {
+                $this->deleteOldFile($service->image);
+                $service->image = $this->manualUpload($file, 'services', $fileName);
+            } catch (\Throwable $e) {
+                file_put_contents(storage_path('logs/upload_error.log'), $e->getMessage() . "\n" . $e->getTraceAsString());
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'image' => 'Gagal mengunggah gambar ke server: ' . $e->getMessage()
+                ]);
+            }
         }
 
         $service->title = $request->title;
