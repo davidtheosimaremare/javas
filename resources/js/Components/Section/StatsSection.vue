@@ -31,6 +31,15 @@ const bgStyle = computed(() => {
         `
     };
 });
+
+// Dynamic grid class based on number of stats
+const gridClass = computed(() => {
+    const count = props.stats?.length || 0;
+    if (count === 1) return 'col-12';
+    if (count === 2) return 'col-12 col-md-6';
+    if (count === 3) return 'col-12 col-md-4';
+    return 'col-12 col-md-6 col-lg-3'; // Default for 4 or more
+});
 </script>
 
 <template>
@@ -46,7 +55,7 @@ const bgStyle = computed(() => {
             </p>
             
             <div class="row">
-                <div class="col-12 col-md-6 col-lg-3" v-for="(item, index) in stats" :key="item.id">
+                <div :class="gridClass" v-for="(item, index) in stats" :key="item.id">
                     <div class="title-row">
                         <div class="mt-5" style="font-size:48px;font-weight: 300;">
                             <NumberCounter :target="item.value" />+

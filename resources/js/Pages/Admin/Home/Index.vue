@@ -136,6 +136,15 @@ const submitUpdate = () => {
     form.post(url, { preserveScroll: true, forceFormData: true, onSuccess: () => closeModal() })
 }
 const handleStatsBgUpload = (e) => { const file = e.target.files[0]; if(file) { formStatsHeader.stats_bg_image = file; previewStatsBg.value = URL.createObjectURL(file) } }
+
+// Dynamic grid class based on number of stats
+const gridClass = computed(() => {
+    const count = props.statistics?.length || 0;
+    if (count === 1) return 'col-12';
+    if (count === 2) return 'col-md-6';
+    if (count === 3) return 'col-md-4';
+    return 'col-md-3';
+});
 </script>
 
 <template>
@@ -241,7 +250,7 @@ const handleStatsBgUpload = (e) => { const file = e.target.files[0]; if(file) { 
                 </form>
             </div>
             <div class="row g-4">
-                <div v-for="item in statistics" :key="item.id" class="col-md-3">
+                <div v-for="item in statistics" :key="item.id" :class="gridClass">
                     <div class="nova-card h-100 p-4 d-flex align-items-center justify-content-between">
                         <div>
                             <div class="display-6 fw-bold text-navy mb-0">{{ item.value }}</div>
