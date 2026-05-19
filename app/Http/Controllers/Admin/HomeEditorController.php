@@ -126,52 +126,38 @@ class HomeEditorController extends Controller
     // =====================================================================
     public function updateStatistic(Request $request, $id)
     {
-        $stat = Statistic::findOrFail($id);
+        try {
+            $stat = Statistic::findOrFail($id);
 
-        $request->validate([
-            'value' => 'required',
-            'label' => 'required|string',
-            'image' => 'nullable|image|max:5120'
-        ]);
+            $request->validate([
+                'value' => 'required',
+                'label' => 'required|string',
+                // Statistic tidak butuh image, tapi kita biarkan kalau memang ada di view lama
+                'image' => 'nullable|image|max:5120' 
+            ]);
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-
-            // Hapus lama
-            if ($stat->image && !str_contains($stat->image, 'defaults/')) {
-                $oldPath = str_replace('/storage/', '', $stat->image);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
-                }
+            // Jika ada image (walaupun defaultnya tidak ada form upload untuk statistik)
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $this->manualUpload($file, $stat, 'stats', 'image');
             }
 
-            // Generate Nama Aman
-            $rawLabel = str_replace(' ', '-', strtolower($request->label));
-            $safeLabel = preg_replace('/[^A-Za-z0-9\-]/', '', $rawLabel);
-            $fileName = substr($safeLabel, 0, 30) . '-' . time() . '.' . $file->getClientOriginalExtension();
+            $stat->update([
+                'value' => $request->value,
+                'label' => $request->label,
+                'is_active' => $request->boolean('is_active')
+            ]);
 
-            if (!Storage::disk('public')->exists('stats')) {
-                Storage::disk('public')->makeDirectory('stats');
-            }
-
-            $path = Storage::disk('public')->putFileAs('stats', $file, $fileName);
-
-            if (!$path) {
-                $path = $file->store('stats', 'public');
-            }
-
-            if ($path) {
-                $stat->image = '/storage/' . $path;
-            }
+            return redirect()->back()->with('success', 'Statistik berhasil diperbarui.');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Statistic Update Error: ' . $e->getMessage());
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'value' => 'Gagal menyimpan data: ' . $e->getMessage()
+            ]);
         }
-
-        $stat->update([
-            'value' => $request->value,
-            'label' => $request->label,
-            'is_active' => $request->boolean('is_active')
-        ]);
-
-        return redirect()->back()->with('success', 'Statistik berhasil diperbarui.');
     }
 
     // =====================================================================

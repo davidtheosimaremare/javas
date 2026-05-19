@@ -34,6 +34,11 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 
 
 
+Route::get('/create-statistic-4', function() {
+    \App\Models\Statistic::firstOrCreate(['order' => 4], ['value' => 0, 'label' => 'Statistik Baru']);
+    return 'Success';
+});
+
 // --- GROUP ROUTE ADMIN ---
 Route::prefix('admin')->group(function () {
     

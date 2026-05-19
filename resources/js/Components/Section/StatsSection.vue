@@ -46,7 +46,7 @@ const bgStyle = computed(() => {
             </p>
             
             <div class="row">
-                <div class="col-12 col-md-4" v-for="(item, index) in stats" :key="item.id">
+                <div class="col-12 col-md-6 col-lg-3" v-for="(item, index) in stats" :key="item.id">
                     <div class="title-row">
                         <div class="mt-5" style="font-size:48px;font-weight: 300;">
                             <NumberCounter :target="item.value" />+

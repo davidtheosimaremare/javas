@@ -241,7 +241,7 @@ const handleStatsBgUpload = (e) => { const file = e.target.files[0]; if(file) { 
                 </form>
             </div>
             <div class="row g-4">
-                <div v-for="item in statistics" :key="item.id" class="col-md-4">
+                <div v-for="item in statistics" :key="item.id" class="col-md-3">
                     <div class="nova-card h-100 p-4 d-flex align-items-center justify-content-between">
                         <div>
                             <div class="display-6 fw-bold text-navy mb-0">{{ item.value }}</div>

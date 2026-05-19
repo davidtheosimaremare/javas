@@ -27,6 +27,11 @@ class StatisticSeeder extends Seeder
                 'label' => 'Mitra Kerja Terpercaya',
                 'order' => 3,
             ],
+            [
+                'value' => 0,
+                'label' => 'Statistik Baru',
+                'order' => 4,
+            ],
         ];
 
         foreach ($stats as $stat) {
