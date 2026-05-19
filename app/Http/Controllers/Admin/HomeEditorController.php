@@ -17,6 +17,14 @@ class HomeEditorController extends Controller
 {
     public function index()
     {
+        // Auto-create slot ke-4 untuk statistik agar tidak perlu jalankan seeder manual di Coolify
+        if (Statistic::count() < 4) {
+            Statistic::firstOrCreate(
+                ['order' => 4],
+                ['value' => 0, 'label' => 'Statistik Baru']
+            );
+        }
+
         return Inertia::render('Admin/Home/Index', [
             'sliders' => Slider::orderBy('order', 'asc')->get(),
             'services' => Service::orderBy('order', 'asc')->get(),
