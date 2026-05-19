@@ -37,6 +37,14 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 // --- GROUP ROUTE ADMIN ---
 Route::prefix('admin')->group(function () {
     
+    // Redirect /admin ke dashboard (jika login) atau login (jika belum)
+    Route::get('/', function () {
+        if (auth()->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('admin.login');
+    });
+
     // Guest (Belum Login)
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
