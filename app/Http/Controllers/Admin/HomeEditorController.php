@@ -55,8 +55,13 @@ class HomeEditorController extends Controller
             $fileName = $cleanTitle . '-' . time() . '.' . $extension;
 
             // 2. Upload & Cleanup
-            $this->deleteOldFile($slider->image);
-            $slider->image = $this->manualUpload($file, 'sliders', $fileName);
+            try {
+                $this->deleteOldFile($slider->image);
+                $slider->image = $this->manualUpload($file, 'sliders', $fileName);
+            } catch (\Throwable $e) {
+                file_put_contents(storage_path('logs/upload_error.log'), $e->getMessage() . "\n" . $e->getTraceAsString());
+                throw $e;
+            }
         }
 
         $slider->title = $request->title;

@@ -102,7 +102,7 @@ const onAutoplayTimeLeft = (swiper, time, progress) => {
   position: relative;
   width: 100%;
   margin-top: -85px; 
-  height: 750px;
+  aspect-ratio: 16 / 9;
   background: #1a1a1a;
 }
 

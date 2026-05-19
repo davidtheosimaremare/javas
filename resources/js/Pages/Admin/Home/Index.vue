@@ -161,7 +161,7 @@ const handleStatsBgUpload = (e) => { const file = e.target.files[0]; if(file) { 
                 <template #item="{ element }">
                     <div class="col-md-6 draggable-item">
                         <div class="nova-card h-100 p-0 overflow-hidden cursor-move">
-                            <div class="card-img-top position-relative" style="height: 220px;">
+                            <div class="card-img-top position-relative" style="aspect-ratio: 16/9;">
                                 <img :src="getImgUrl(element.image)" class="w-100 h-100 object-fit-cover">
                                 <div class="position-absolute top-0 start-0 bg-navy text-white px-3 py-1 rounded-end-pill mt-3 small fw-bold">#{{ element.order }}</div>
                                 <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">
