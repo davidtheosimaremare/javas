@@ -65,7 +65,7 @@ const cardStyle = computed(() => {
 
 .service-card {
     /* Ukuran & Tampilan */
-    min-height: 400px;
+    aspect-ratio: 9 / 16;
     border-radius: 1rem;
     border: none;
     overflow: hidden;
