@@ -13,9 +13,9 @@ const isDropdownOpen = ref(false)
 const page = usePage()
 const logoUrl = computed(() => {
     const path = page.props.globalData?.profile?.logo
-    if (!path) return null
-    if (path.startsWith('http')) return path
-    return `/storage/${path.replace('storage/', '')}`
+    if (path && path.startsWith('http')) return path
+    if (path) return `/storage/${path.replace('storage/', '')}`
+    return '/images/logo.png' // Fallback to default logo
 })
 
 const appName = computed(() => page.props.globalData?.profile?.name || 'JBB')
@@ -89,8 +89,7 @@ onUnmounted(() => {
             <div class="sidebar-header">
                 <div class="brand-wrapper">
                     <div class="logo-box">
-                        <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="brand-img" />
-                        <span v-else>J</span>
+                        <img :src="logoUrl" alt="Logo" class="brand-img" />
                     </div>
                     <div class="brand-text">
                         <span class="fw-bold text-white">{{ appName }}</span>
@@ -106,28 +105,28 @@ onUnmounted(() => {
 
                     <li class="nav-item">
                         <Link href="/admin/dashboard" class="nav-link" :class="{ 'active': isActive('/admin/dashboard') }" @click="handleNavClick">
-                            <i class="bi bi-grid icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-grid"></i></div>
                             <span class="label">Dashboard</span>
                         </Link>
                     </li>
 
                     <li class="nav-item">
                         <Link href="/admin/company-profile" class="nav-link" :class="{ 'active': isActive('/admin/company-profile') }" @click="handleNavClick">
-                            <i class="bi bi-building icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-building"></i></div>
                             <span class="label">Company Profile</span>
                         </Link>
                     </li>
 
-                    <li class="nav-label mt-4">CONTENT MANAGEMENT</li>
+                    <li class="nav-label">CONTENT MANAGEMENT</li>
 
                     <li class="nav-item has-submenu" :class="{ 'open': isPagesOpen }">
                         <div class="nav-link submenu-toggle" :class="{ 'active': checkPagesActive() }" @click="isPagesOpen = !isPagesOpen">
-                            <i class="bi bi-layout-text-window-reverse icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-layout-text-window-reverse"></i></div>
                             <span class="label">Halaman Web</span>
                             <i class="bi bi-chevron-down ms-auto arrow"></i>
                         </div>
                         
-                        <div class="submenu-container" :style="{ maxHeight: isPagesOpen ? '300px' : '0' }">
+                        <div class="submenu-container" :style="{ maxHeight: isPagesOpen ? '350px' : '0' }">
                             <ul class="sub-menu">
                                 <li>
                                     <Link href="/admin/home-editor" class="sub-link" :class="{ 'active': isActive('/admin/home-editor') }" @click="handleNavClick">
@@ -165,53 +164,54 @@ onUnmounted(() => {
 
                     <li class="nav-item">
                          <Link href="/admin/projects" class="nav-link" :class="{ 'active': isActive('/admin/projects') }" @click="handleNavClick">
-                            <i class="bi bi-briefcase icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-briefcase"></i></div>
                             <span class="label">Manajemen Proyek</span>
                         </Link>
                     </li>
 
                     <li class="nav-item">
                          <Link href="/admin/news-list" class="nav-link" :class="{ 'active': isActive('/admin/news-list') }" @click="handleNavClick">
-                            <i class="bi bi-newspaper icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-newspaper"></i></div>
                             <span class="label">Berita & Artikel</span>
                         </Link>
                     </li>
 
                     <li class="nav-item">
                          <Link href="/admin/career-list" class="nav-link" :class="{ 'active': isActive('/admin/career-list') }" @click="handleNavClick">
-                            <i class="bi bi-person-workspace icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-person-workspace"></i></div>
                             <span class="label">Karir</span>
                         </Link>
                     </li>
 
-                    <li class="nav-label mt-4">PROJECT MANAGEMENT</li>
+                    <li class="nav-label">PROJECT MANAGEMENT</li>
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-kanban icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-kanban"></i></div>
                             <span class="label">Project Timeline</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-people icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-people"></i></div>
                             <span class="label">Team</span>
                         </a>
                     </li>
 
-                    <li class="nav-label mt-4">SYSTEM</li>
+                    <li class="nav-label">SYSTEM</li>
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-person-badge icon"></i>
+                            <div class="icon-wrapper"><i class="bi bi-person-badge"></i></div>
                             <span class="label">Administrator</span>
                         </a>
                     </li>
 
                     <li class="nav-item mt-4 d-lg-none">
                         <button class="nav-link text-danger border-0 bg-transparent w-100 text-start" @click="logout">
-                            <i class="bi bi-box-arrow-left icon"></i> <span class="label">Logout</span>
+                            <div class="icon-wrapper"><i class="bi bi-box-arrow-left"></i></div> 
+                            <span class="label">Logout</span>
                         </button>
                     </li>
                 </ul>
@@ -285,12 +285,12 @@ onUnmounted(() => {
 
 :root {
     --admin-bg: #f8fafc;
-    --sidebar-bg: #0f172a; /* Slate 900 for a modern dark look */
+    --sidebar-bg: #0b1120; /* Sleek darker slate for a cleaner look */
     --sidebar-width: 280px;
-    --header-height: 70px;
-    --accent-color: #3b82f6; /* Modern Blue */
+    --header-height: 72px;
+    --accent-color: #2563eb; /* Vibrant royal blue */
     --text-muted: #94a3b8;
-    --text-light: #f1f5f9;
+    --text-light: #f8fafc;
 }
 
 body { 
@@ -328,35 +328,32 @@ body {
     display: flex; 
     align-items: center; 
     padding: 0 1.5rem; 
-    border-bottom: 1px solid rgba(255,255,255,0.05); 
+    border-bottom: 1px solid rgba(255,255,255,0.08); 
 }
 
 .brand-wrapper { 
     display: flex; 
     align-items: center; 
-    gap: 12px; 
+    gap: 14px; 
 }
 
 .logo-box { 
-    width: 40px; 
-    height: 40px; 
+    width: 42px; 
+    height: 42px; 
     background: #ffffff; 
     border-radius: 10px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-weight: 800; 
-    font-size: 1.2rem;
-    color: var(--sidebar-bg);
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .brand-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 4px;
+    padding: 5px;
 }
 
 .brand-text { 
@@ -366,23 +363,24 @@ body {
 }
 
 .brand-text .fw-bold {
-    font-size: 1.1rem; 
+    font-size: 1.15rem; 
     letter-spacing: -0.02em; 
-    line-height: 1.2;
+    line-height: 1.1;
 }
 
 .badge-admin { 
     font-size: 0.65rem; 
     text-transform: uppercase; 
-    color: var(--accent-color); 
+    color: #60a5fa; 
     font-weight: 700; 
     letter-spacing: 0.5px; 
+    margin-top: 2px;
 }
 
 .sidebar-content { 
     flex: 1; 
     overflow-y: auto; 
-    padding: 1.5rem 1rem; 
+    padding: 1.5rem 1.25rem; 
 }
 
 .nav-menu {
@@ -391,14 +389,14 @@ body {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px; /* slightly bigger gap between items */
 }
 
 .nav-label { 
     font-size: 0.65rem; 
     font-weight: 800; 
     color: rgba(255,255,255,0.3); 
-    margin: 1.5rem 0 0.5rem 1rem; 
+    margin: 1.5rem 0 0.5rem 0.5rem; 
     letter-spacing: 0.1em; 
 }
 
@@ -414,33 +412,35 @@ body {
     transition: all 0.2s ease;
     cursor: pointer;
     text-decoration: none;
+    background-color: transparent;
 }
 
-.nav-link .icon { 
-    font-size: 1.2rem; 
+.nav-link .icon-wrapper { 
+    font-size: 1.15rem; 
     margin-right: 14px; 
-    width: 20px; 
-    text-align: center; 
+    width: 24px; 
+    display: flex;
+    justify-content: center;
     transition: color 0.2s;
 }
 
 .nav-link:hover { 
     color: #fff; 
-    background-color: rgba(255,255,255,0.05); 
+    background-color: rgba(255,255,255,0.06); 
 }
 
 .nav-link.active { 
     background-color: var(--accent-color); 
     color: #fff; 
     font-weight: 600; 
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.nav-link.active .icon {
+.nav-link.active .icon-wrapper {
     color: #fff;
 }
 
-/* Submenu container transition fix */
+/* Submenu container transition */
 .submenu-container {
     overflow: hidden;
     transition: max-height 0.3s ease-in-out;
@@ -462,26 +462,26 @@ body {
 
 .sub-menu { 
     list-style: none;
-    padding: 0.5rem 0 0.5rem 2.8rem; 
+    padding: 0.5rem 0 0.5rem 3rem; 
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .sub-link { 
     display: block; 
     color: var(--text-muted); 
-    font-size: 0.85rem; 
-    padding: 0.4rem 0.75rem; 
-    border-radius: 6px;
+    font-size: 0.9rem; 
+    padding: 0.5rem 1rem; 
+    border-radius: 8px;
     text-decoration: none; 
     transition: all 0.2s; 
 }
 
 .sub-link:hover { 
     color: #fff; 
-    background-color: rgba(255,255,255,0.05);
+    background-color: rgba(255,255,255,0.06);
 }
 
 .sub-link.active { 
@@ -493,8 +493,8 @@ body {
 /* Sidebar Footer */
 .sidebar-footer { 
     padding: 1rem 1.5rem; 
-    background-color: rgba(0,0,0,0.2); 
-    border-top: 1px solid rgba(255,255,255,0.05);
+    background-color: rgba(0,0,0,0.25); 
+    border-top: 1px solid rgba(255,255,255,0.08);
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
@@ -509,14 +509,14 @@ body {
 .avatar { 
     width: 36px; 
     height: 36px; 
-    background: linear-gradient(135deg, var(--accent-color), #2563eb); 
+    background: linear-gradient(135deg, var(--accent-color), #1d4ed8); 
     color: white; 
     border-radius: 50%; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-size: 1rem; 
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    font-size: 1.1rem; 
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .info .name { 
@@ -616,7 +616,7 @@ body {
 .search-input:focus { 
     background-color: #fff; 
     border-color: #cbd5e1; 
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
     outline: none; 
 }
 
@@ -682,14 +682,14 @@ body {
 .avatar-sm { 
     width: 36px; 
     height: 36px; 
-    background: linear-gradient(135deg, var(--accent-color), #2563eb); 
+    background: linear-gradient(135deg, var(--accent-color), #1d4ed8); 
     color: #fff; 
     border-radius: 50%; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     font-size: 1rem; 
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .content-body { 
@@ -713,7 +713,7 @@ body {
         position: fixed; 
         top: 0; left: 0; 
         width: 100vw; height: 100vh; 
-        background: rgba(15, 23, 42, 0.4); 
+        background: rgba(11, 17, 32, 0.4); 
         z-index: 1045; 
         backdrop-filter: blur(4px); 
         opacity: 0; 

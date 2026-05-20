@@ -29,6 +29,7 @@ const resolveImageUrl = (path) => {
 // Langsung ambil dari database melalui props
 const logoPrimaryPreview = ref(resolveImageUrl(props.profile?.logo_primary))
 const logoSecondaryPreview = ref(resolveImageUrl(props.profile?.logo_secondary))
+const faviconPreview = ref(resolveImageUrl(props.profile?.favicon))
 
 // --- FORM INIT ---
 const form = useForm({
@@ -40,6 +41,7 @@ const form = useForm({
     phone_number: props.profile?.phone_number || '',
     logo_primary: null, // File fisik (untuk dikirim ke backend)
     logo_secondary: null,
+    favicon: null,
     social_media: {
         facebook: props.profile?.social_media?.facebook || '',
         instagram: props.profile?.social_media?.instagram || '',
@@ -64,6 +66,15 @@ const handleLogoSecondary = (e) => {
         form.logo_secondary = file
         // Buat preview lokal langsung
         logoSecondaryPreview.value = URL.createObjectURL(file)
+    }
+}
+
+const handleFavicon = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+        form.favicon = file
+        // Buat preview lokal langsung
+        faviconPreview.value = URL.createObjectURL(file)
     }
 }
 
@@ -130,6 +141,18 @@ const submit = () => {
                             <span v-else class="text-muted small">Belum ada logo</span>
                         </div>
                         <input type="file" class="form-control form-control-sm" @change="handleLogoSecondary" accept="image/*">
+                    </div>
+
+                    <hr class="border-light my-3">
+
+                    <div class="mb-2 text-center">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Favicon (Ikon Website)</label>
+                        <div class="logo-preview-box bg-light mb-2 border">
+                            <img v-if="faviconPreview" :src="faviconPreview" class="img-fluid logo-img" style="max-height: 48px; max-width: 48px;">
+                            <span v-else class="text-muted small">Belum ada favicon</span>
+                        </div>
+                        <input type="file" class="form-control form-control-sm" @change="handleFavicon" accept="image/png, image/jpeg, image/x-icon, image/svg+xml">
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem">Rasio 1:1, ukuran maks 1MB</small>
                     </div>
                 </div>
 

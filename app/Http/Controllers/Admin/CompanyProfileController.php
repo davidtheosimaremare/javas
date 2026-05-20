@@ -36,6 +36,7 @@ class CompanyProfileController extends Controller
             'phone_number' => 'required|string',
             'logo_primary' => 'nullable|image|max:2048',
             'logo_secondary' => 'nullable|image|max:2048',
+            'favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:1024',
             'social_media' => 'nullable|array'
         ]);
 
@@ -49,6 +50,12 @@ class CompanyProfileController extends Controller
         if ($request->hasFile('logo_secondary')) {
             if ($profile->logo_secondary) Storage::disk('public')->delete($profile->logo_secondary);
             $profile->logo_secondary = $request->file('logo_secondary')->store('company', 'public');
+        }
+
+        // Handle File Upload Favicon
+        if ($request->hasFile('favicon')) {
+            if ($profile->favicon) Storage::disk('public')->delete($profile->favicon);
+            $profile->favicon = $request->file('favicon')->store('company', 'public');
         }
 
         $profile->company_name = $validated['company_name'];
