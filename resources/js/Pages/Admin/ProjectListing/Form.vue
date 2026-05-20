@@ -14,7 +14,7 @@ const isEdit = computed(() => !!props.project)
 const activeTab = ref('info')
 
 // --- ASSET PETA ---
-const mapImageSrc = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Geographical_units_of_Indonesia.svg/1200px-Geographical_units_of_Indonesia.svg.png'
+const mapImageSrc = '/images/indonesia-map.svg'
 
 // --- HELPER IMAGE ---
 const getImgUrl = (path) => {

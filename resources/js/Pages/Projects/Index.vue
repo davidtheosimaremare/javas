@@ -13,7 +13,7 @@ const props = defineProps({
 })
 
 // --- 3. ASSETS & LOGIC ---
-const mapImage = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Geographical_units_of_Indonesia.svg/1200px-Geographical_units_of_Indonesia.svg.png'
+const mapImage = '/images/indonesia-map.svg'
 const activeLocationId = ref(null)
 const setActiveLocation = (id) => { activeLocationId.value = id }
 </script>
