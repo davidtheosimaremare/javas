@@ -12,7 +12,7 @@ const isDropdownOpen = ref(false)
 // --- PAGE & LOGO ---
 const page = usePage()
 const logoUrl = computed(() => {
-    const path = page.props.globalData?.profile?.logo
+    const path = page.props.globalData?.profile?.logo_secondary || page.props.globalData?.profile?.logo_primary;
     if (path && path.startsWith('http')) return path
     if (path) return `/storage/${path.replace('storage/', '')}`
     return '/images/logo.png' // Fallback to default logo
@@ -396,14 +396,16 @@ body {
     font-size: 0.65rem; 
     font-weight: 800; 
     color: rgba(255,255,255,0.3); 
-    margin: 1.5rem 0 0.5rem 0.5rem; 
+    margin: 1.5rem 0 0.5rem 0; 
+    padding-left: 1rem;
     letter-spacing: 0.1em; 
 }
 
 /* Nav Links */
 .nav-link { 
-    display: flex; 
-    align-items: center; 
+    display: flex !important; 
+    flex-direction: row !important;
+    align-items: center !important; 
     padding: 0.75rem 1rem; 
     color: var(--text-muted); 
     font-weight: 500; 
@@ -421,6 +423,7 @@ body {
     width: 24px; 
     display: flex;
     justify-content: center;
+    align-items: center;
     transition: color 0.2s;
 }
 
