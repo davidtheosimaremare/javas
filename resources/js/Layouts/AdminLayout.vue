@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 
 // --- STATE ---
@@ -9,9 +9,18 @@ const searchQuery = ref('')
 const isPagesOpen = ref(false)
 const isDropdownOpen = ref(false)
 
-// --- LOGIC HELPER: CEK URL AKTIF ---
-// Fungsi ini mengecek apakah URL browser saat ini berawalan dengan path tertentu
+// --- PAGE & LOGO ---
 const page = usePage()
+const logoUrl = computed(() => {
+    const path = page.props.globalData?.profile?.logo
+    if (!path) return null
+    if (path.startsWith('http')) return path
+    return `/storage/${path.replace('storage/', '')}`
+})
+
+const appName = computed(() => page.props.globalData?.profile?.name || 'JBB')
+
+// --- LOGIC HELPER: CEK URL AKTIF ---
 const isActive = (path) => page.url.startsWith(path)
 
 const checkPagesActive = () => {
@@ -67,117 +76,86 @@ onUnmounted(() => {
 <template>
     <div class="admin-layout">
         
+        <!-- Mobile Backdrop -->
         <div 
             class="sidebar-backdrop" 
             :class="{ 'show': isMobile && isSidebarOpen }"
             @click="isSidebarOpen = false"
         ></div>
 
-        <aside class="sidebar" :class="{ 'closed': !isSidebarOpen }">
+        <!-- Sidebar -->
+        <aside class="sidebar modern-sidebar" :class="{ 'closed': !isSidebarOpen }">
             
             <div class="sidebar-header">
                 <div class="brand-wrapper">
-                    <div class="logo-box">J</div>
+                    <div class="logo-box">
+                        <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="brand-img" />
+                        <span v-else>J</span>
+                    </div>
                     <div class="brand-text">
-                        <span class="fw-bold">JBB</span>
-                        <span class="badge-admin">Admin</span>
+                        <span class="fw-bold text-white">{{ appName }}</span>
+                        <span class="badge-admin">Admin Workspace</span>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar-content custom-scroll">
-                <ul class="nav flex-column gap-1">
+                <ul class="nav-menu">
                     
                     <li class="nav-label">MAIN MENU</li>
 
                     <li class="nav-item">
                         <Link href="/admin/dashboard" class="nav-link" :class="{ 'active': isActive('/admin/dashboard') }" @click="handleNavClick">
-                            <i class="bi bi-grid-fill icon"></i>
+                            <i class="bi bi-grid icon"></i>
                             <span class="label">Dashboard</span>
                         </Link>
                     </li>
 
                     <li class="nav-item">
                         <Link href="/admin/company-profile" class="nav-link" :class="{ 'active': isActive('/admin/company-profile') }" @click="handleNavClick">
-                            <i class="bi bi-building-fill icon"></i>
+                            <i class="bi bi-building icon"></i>
                             <span class="label">Company Profile</span>
                         </Link>
                     </li>
 
                     <li class="nav-label mt-4">CONTENT MANAGEMENT</li>
 
-                    <li class="nav-item">
-                        <button 
-                            type="button" 
-                            class="nav-link has-arrow w-100 border-0 bg-transparent text-start" 
-                            :class="{ 
-                                'collapsed': !isPagesOpen, 
-                                'active': checkPagesActive() 
-                            }" 
-                            @click="isPagesOpen = !isPagesOpen"
-                            :aria-expanded="isPagesOpen ? 'true' : 'false'">
-                            
+                    <li class="nav-item has-submenu" :class="{ 'open': isPagesOpen }">
+                        <div class="nav-link submenu-toggle" :class="{ 'active': checkPagesActive() }" @click="isPagesOpen = !isPagesOpen">
                             <i class="bi bi-layout-text-window-reverse icon"></i>
                             <span class="label">Halaman Web</span>
                             <i class="bi bi-chevron-down ms-auto arrow"></i>
-                        </button>
+                        </div>
                         
-                        <div class="collapse" 
-                             :class="{ 'show': isPagesOpen }" 
-                             id="menuPages">
-                            <ul class="nav flex-column sub-menu">
-                                
+                        <div class="submenu-container" :style="{ maxHeight: isPagesOpen ? '300px' : '0' }">
+                            <ul class="sub-menu">
                                 <li>
-                                    <Link 
-                                        href="/admin/home-editor" 
-                                        class="sub-link" 
-                                        :class="{ 'active': isActive('/admin/home-editor') }" 
-                                        @click="handleNavClick"
-                                    >
+                                    <Link href="/admin/home-editor" class="sub-link" :class="{ 'active': isActive('/admin/home-editor') }" @click="handleNavClick">
                                         Homepage
                                     </Link>
                                 </li>
-
-                                <li><Link href="/admin/about-editor" 
-                                        class="sub-link" 
-                                        :class="{ 'active': isActive('/admin/about-editor') }" 
-                                        @click="handleNavClick">About Us</Link></li>
                                 <li>
-                                    <Link 
-                                        href="/admin/project-editor" 
-                                        class="sub-link" 
-                                        :class="{ 'active': isActive('/admin/project-editor') }" 
-                                        @click="handleNavClick">
+                                    <Link href="/admin/about-editor" class="sub-link" :class="{ 'active': isActive('/admin/about-editor') }" @click="handleNavClick">
+                                        About Us
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/admin/project-editor" class="sub-link" :class="{ 'active': isActive('/admin/project-editor') }" @click="handleNavClick">
                                         Projects
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link 
-                                        href="/admin/career-editor" 
-                                        class="sub-link" 
-                                        :class="{ 'active': isActive('/admin/career-editor') }" 
-                                        @click="handleNavClick"
-                                    >
+                                    <Link href="/admin/career-editor" class="sub-link" :class="{ 'active': isActive('/admin/career-editor') }" @click="handleNavClick">
                                         Career
                                     </Link>
                                 </li>
                                 <li>
-                                        <Link 
-                                            href="/admin/news-editor" 
-                                            class="sub-link" 
-                                            :class="{ 'active': isActive('/admin/news-editor') }" 
-                                            @click="handleNavClick"
-                                        >
-                                            News
-                                        </Link>
-                                    </li>
+                                    <Link href="/admin/news-editor" class="sub-link" :class="{ 'active': isActive('/admin/news-editor') }" @click="handleNavClick">
+                                        News
+                                    </Link>
+                                </li>
                                 <li>
-                                    <Link 
-                                        href="/admin/contact-editor" 
-                                        class="sub-link" 
-                                        :class="{ 'active': isActive('/admin/contact-editor') }" 
-                                        @click="handleNavClick"
-                                    >
+                                    <Link href="/admin/contact-editor" class="sub-link" :class="{ 'active': isActive('/admin/contact-editor') }" @click="handleNavClick">
                                         Contact
                                     </Link>
                                 </li>
@@ -187,7 +165,7 @@ onUnmounted(() => {
 
                     <li class="nav-item">
                          <Link href="/admin/projects" class="nav-link" :class="{ 'active': isActive('/admin/projects') }" @click="handleNavClick">
-                            <i class="bi bi-briefcase-fill icon"></i>
+                            <i class="bi bi-briefcase icon"></i>
                             <span class="label">Manajemen Proyek</span>
                         </Link>
                     </li>
@@ -199,26 +177,25 @@ onUnmounted(() => {
                         </Link>
                     </li>
 
-
                     <li class="nav-item">
                          <Link href="/admin/career-list" class="nav-link" :class="{ 'active': isActive('/admin/career-list') }" @click="handleNavClick">
-                            <i class="bi bi-newspaper icon"></i>
+                            <i class="bi bi-person-workspace icon"></i>
                             <span class="label">Karir</span>
                         </Link>
                     </li>
 
-                    <li class="nav-label mt-4">Project Management</li>
+                    <li class="nav-label mt-4">PROJECT MANAGEMENT</li>
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-newspaper icon"></i>
+                            <i class="bi bi-kanban icon"></i>
                             <span class="label">Project Timeline</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-newspaper icon"></i>
+                            <i class="bi bi-people icon"></i>
                             <span class="label">Team</span>
                         </a>
                     </li>
@@ -227,14 +204,14 @@ onUnmounted(() => {
 
                     <li class="nav-item">
                         <a href="#" class="nav-link" @click.prevent="handleNavClick">
-                            <i class="bi bi-people-fill icon"></i>
+                            <i class="bi bi-person-badge icon"></i>
                             <span class="label">Administrator</span>
                         </a>
                     </li>
 
                     <li class="nav-item mt-4 d-lg-none">
-                        <button class="nav-link text-danger w-100 text-start" @click="logout">
-                            <i class="bi bi-box-arrow-left icon"></i> Logout
+                        <button class="nav-link text-danger border-0 bg-transparent w-100 text-start" @click="logout">
+                            <i class="bi bi-box-arrow-left icon"></i> <span class="label">Logout</span>
                         </button>
                     </li>
                 </ul>
@@ -242,7 +219,9 @@ onUnmounted(() => {
 
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="avatar">A</div>
+                    <div class="avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
                     <div class="info">
                         <div class="name">Administrator</div>
                         <div class="role">Super User</div>
@@ -254,6 +233,7 @@ onUnmounted(() => {
             </div>
         </aside>
 
+        <!-- Main Content -->
         <div class="main-wrapper" :class="{ 'full-width': !isSidebarOpen }">
             
             <header class="topbar">
@@ -263,7 +243,7 @@ onUnmounted(() => {
                     </button>
                     <div class="global-search d-none d-md-flex">
                         <i class="bi bi-search search-icon"></i>
-                        <input type="text" v-model="searchQuery" placeholder="Tekan / untuk mencari resource..." class="search-input">
+                        <input type="text" v-model="searchQuery" placeholder="Cari menu atau resource..." class="search-input">
                         <span class="search-shortcut">/</span>
                     </div>
                 </div>
@@ -275,12 +255,14 @@ onUnmounted(() => {
                     </button>
                     <div class="dropdown">
                         <button type="button" class="user-dropdown border-0 bg-transparent d-flex align-items-center" @click="isDropdownOpen = !isDropdownOpen">
-                            <div class="avatar-sm">A</div>
-                            <span class="d-none d-md-block ms-2 fw-bold text-dark">Admin JBB</span>
+                            <div class="avatar-sm">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <span class="d-none d-md-block ms-2 fw-semibold text-dark">Admin</span>
                             <i class="bi bi-chevron-down ms-2 fs-xs text-muted"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-3 mt-2" :class="{ 'show': isDropdownOpen }" style="position: absolute; right: 0;">
-                            <li><button class="dropdown-item rounded-2 text-danger" @click="logout">Logout</button></li>
+                            <li><button class="dropdown-item rounded-2 text-danger" @click="logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></li>
                         </ul>
                     </div>
                 </div>
@@ -291,102 +273,458 @@ onUnmounted(() => {
             </main>
 
             <footer class="footer">
-                <p>&copy; 2025 PT JBB Javas Berkah Bistari. <span class="text-muted">v1.0.0</span></p>
+                <p>&copy; 2025 PT JBB Javas Berkah Bistari. <span class="text-muted ms-2">v1.1.0</span></p>
             </footer>
 
         </div>
-
     </div>
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --nova-primary: #002b49;       
-    --nova-primary-dark: #001a2e;  
-    --nova-bg: #f3f4f6;            
-    --nova-sidebar-width: 280px;   
-    --nova-header-height: 64px;    
-    --text-menu: #94a3b8;          
-    --text-menu-active: #ffffff;   
+    --admin-bg: #f8fafc;
+    --sidebar-bg: #0f172a; /* Slate 900 for a modern dark look */
+    --sidebar-width: 280px;
+    --header-height: 70px;
+    --accent-color: #3b82f6; /* Modern Blue */
+    --text-muted: #94a3b8;
+    --text-light: #f1f5f9;
 }
 
-body { font-family: 'Rethink Sans', sans-serif !important; background-color: var(--nova-bg); }
-.admin-layout { display: flex; min-height: 100vh; width: 100%; }
-
-/* SIDEBAR STYLE */
-.sidebar {
-    width: var(--nova-sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
-    background-color: var(--nova-primary); color: white; z-index: 1050;
-    display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif !important; 
+    background-color: var(--admin-bg); 
+    margin: 0;
+    padding: 0;
 }
-.sidebar-header { height: var(--nova-header-height); display: flex; align-items: center; padding: 0 1.5rem; background-color: rgba(0,0,0,0.1); border-bottom: 1px solid rgba(255,255,255,0.05); }
-.brand-wrapper { display: flex; align-items: center; gap: 12px; }
-.logo-box { width: 36px; height: 36px; background: #fff; color: var(--nova-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; }
-.brand-text { font-size: 1.1rem; letter-spacing: 0.5px; line-height: 1; }
-.badge-admin { display: block; font-size: 0.65rem; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 1px; margin-top: 2px; }
-.sidebar-content { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; }
-.nav-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); margin: 1.5rem 0 0.5rem 0.8rem; letter-spacing: 0.05em; }
 
-/* Menu Links */
-.nav-link { display: flex; align-items: center; padding: 0.75rem 1rem; color: var(--text-menu); font-weight: 500; font-size: 0.95rem; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
-.nav-link .icon { font-size: 1.1rem; margin-right: 12px; width: 20px; text-align: center; opacity: 0.8; }
-.nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.08); }
-.nav-link.active { background-color: rgba(255,255,255,0.15); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-weight: 600; }
+.admin-layout { 
+    display: flex; 
+    min-height: 100vh; 
+    width: 100%; 
+    overflow-x: hidden;
+}
 
-/* Submenu */
-.nav-link.collapsed .arrow { transform: rotate(0deg); }
-.nav-link .arrow { transition: transform 0.3s; font-size: 0.8rem; opacity: 0.7; }
-.nav-link:not(.collapsed) .arrow { transform: rotate(180deg); }
-.sub-menu { padding-left: 2.8rem; padding-top: 0.25rem; }
-.sub-link { display: block; color: var(--text-menu); font-size: 0.9rem; padding: 0.4rem 0; text-decoration: none; transition: color 0.2s; position: relative; }
-.sub-link:hover { color: #fff; }
+/* SIDEBAR MODERN */
+.modern-sidebar {
+    width: var(--sidebar-width); 
+    height: 100vh; 
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    background-color: var(--sidebar-bg); 
+    color: var(--text-light); 
+    z-index: 1050;
+    display: flex; 
+    flex-direction: column; 
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.05);
+}
 
-/* Submenu Active State (Highlight Putih) */
-.sub-link.active { color: #fff; font-weight: 600; }
-.sub-link.active::before { content: "•"; position: absolute; left: -15px; color: #4dabf7; font-size: 1.2rem; line-height: 1.2rem; }
+.sidebar-header { 
+    height: var(--header-height); 
+    display: flex; 
+    align-items: center; 
+    padding: 0 1.5rem; 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+}
+
+.brand-wrapper { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+
+.logo-box { 
+    width: 40px; 
+    height: 40px; 
+    background: #ffffff; 
+    border-radius: 10px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 800; 
+    font-size: 1.2rem;
+    color: var(--sidebar-bg);
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.brand-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 4px;
+}
+
+.brand-text { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand-text .fw-bold {
+    font-size: 1.1rem; 
+    letter-spacing: -0.02em; 
+    line-height: 1.2;
+}
+
+.badge-admin { 
+    font-size: 0.65rem; 
+    text-transform: uppercase; 
+    color: var(--accent-color); 
+    font-weight: 700; 
+    letter-spacing: 0.5px; 
+}
+
+.sidebar-content { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 1.5rem 1rem; 
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-label { 
+    font-size: 0.65rem; 
+    font-weight: 800; 
+    color: rgba(255,255,255,0.3); 
+    margin: 1.5rem 0 0.5rem 1rem; 
+    letter-spacing: 0.1em; 
+}
+
+/* Nav Links */
+.nav-link { 
+    display: flex; 
+    align-items: center; 
+    padding: 0.75rem 1rem; 
+    color: var(--text-muted); 
+    font-weight: 500; 
+    font-size: 0.95rem; 
+    border-radius: 10px; 
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.nav-link .icon { 
+    font-size: 1.2rem; 
+    margin-right: 14px; 
+    width: 20px; 
+    text-align: center; 
+    transition: color 0.2s;
+}
+
+.nav-link:hover { 
+    color: #fff; 
+    background-color: rgba(255,255,255,0.05); 
+}
+
+.nav-link.active { 
+    background-color: var(--accent-color); 
+    color: #fff; 
+    font-weight: 600; 
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.nav-link.active .icon {
+    color: #fff;
+}
+
+/* Submenu container transition fix */
+.submenu-container {
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.submenu-toggle .arrow { 
+    transition: transform 0.3s ease; 
+    font-size: 0.8rem; 
+}
+
+.has-submenu.open .submenu-toggle .arrow { 
+    transform: rotate(180deg); 
+}
+
+.has-submenu.open .submenu-toggle:not(.active) {
+    background-color: rgba(255,255,255,0.03);
+    color: #fff;
+}
+
+.sub-menu { 
+    list-style: none;
+    padding: 0.5rem 0 0.5rem 2.8rem; 
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sub-link { 
+    display: block; 
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    padding: 0.4rem 0.75rem; 
+    border-radius: 6px;
+    text-decoration: none; 
+    transition: all 0.2s; 
+}
+
+.sub-link:hover { 
+    color: #fff; 
+    background-color: rgba(255,255,255,0.05);
+}
+
+.sub-link.active { 
+    color: #fff; 
+    font-weight: 600; 
+    background-color: rgba(255,255,255,0.1);
+}
 
 /* Sidebar Footer */
-.sidebar-footer { padding: 1rem 1.5rem; background-color: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: space-between; }
-.user-profile { display: flex; align-items: center; gap: 10px; }
-.avatar { width: 38px; height: 38px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; border: 2px solid rgba(255,255,255,0.1); }
-.info .name { font-size: 0.9rem; font-weight: 600; color: #fff; line-height: 1.2; }
-.info .role { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
-.btn-logout { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-.btn-logout:hover { color: #ef4444; transform: scale(1.1); }
+.sidebar-footer { 
+    padding: 1rem 1.5rem; 
+    background-color: rgba(0,0,0,0.2); 
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+
+.user-profile { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+
+.avatar { 
+    width: 36px; 
+    height: 36px; 
+    background: linear-gradient(135deg, var(--accent-color), #2563eb); 
+    color: white; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1rem; 
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.info .name { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    color: #fff; 
+    line-height: 1.2; 
+}
+
+.info .role { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+}
+
+.btn-logout { 
+    background: rgba(255,255,255,0.05); 
+    border: none; 
+    color: var(--text-muted); 
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer; 
+    transition: all 0.2s; 
+}
+
+.btn-logout:hover { 
+    color: #ef4444; 
+    background: rgba(239, 68, 68, 0.1);
+}
 
 /* Main Wrapper */
-.main-wrapper { flex-grow: 1; margin-left: var(--nova-sidebar-width); min-height: 100vh; display: flex; flex-direction: column; transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); background-color: var(--nova-bg); width: calc(100% - var(--nova-sidebar-width)); }
-@media (min-width: 1024px) { .sidebar.closed { transform: translateX(-100%); } .main-wrapper.full-width { margin-left: 0; width: 100%; } }
+.main-wrapper { 
+    flex-grow: 1; 
+    margin-left: var(--sidebar-width); 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    background-color: var(--admin-bg); 
+    width: calc(100% - var(--sidebar-width)); 
+}
+
+@media (min-width: 1024px) { 
+    .sidebar.closed { transform: translateX(-100%); } 
+    .main-wrapper.full-width { margin-left: 0; width: 100%; } 
+}
 
 /* Topbar */
-.topbar { height: var(--nova-header-height); background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; position: sticky; top: 0; z-index: 1040; }
-.btn-toggle { background: transparent; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; transition: color 0.2s; padding: 0; }
-.btn-toggle:hover { color: var(--nova-primary); }
-.global-search { position: relative; width: 400px; margin-left: 1rem; }
-.search-input { width: 100%; background-color: #f1f5f9; border: 1px solid transparent; border-radius: 8px; padding: 0.5rem 2.5rem; font-size: 0.9rem; color: #334155; transition: all 0.2s; }
-.search-input:focus { background-color: #fff; border-color: #cbd5e1; box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); outline: none; }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem; }
-.search-shortcut { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #e2e8f0; color: #64748b; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-.btn-icon { position: relative; background: transparent; border: none; color: #64748b; font-size: 1.25rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-.btn-icon:hover { background-color: #f1f5f9; color: var(--nova-primary); }
-.badge-dot { position: absolute; top: 10px; right: 12px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; border: 2px solid #fff; }
-.user-dropdown { display: flex; align-items: center; text-decoration: none; }
-.avatar-sm { width: 34px; height: 34px; background: var(--nova-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
-.content-body { padding: 2rem; flex-grow: 1; }
-.footer { padding: 1.5rem 2rem; text-align: center; color: #94a3b8; font-size: 0.85rem; border-top: 1px solid #e2e8f0; }
+.topbar { 
+    height: var(--header-height); 
+    background: rgba(255, 255, 255, 0.8); 
+    backdrop-filter: blur(12px); 
+    border-bottom: 1px solid rgba(0,0,0,0.05); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 2rem; 
+    position: sticky; 
+    top: 0; 
+    z-index: 1040; 
+}
+
+.btn-toggle { 
+    background: transparent; 
+    border: none; 
+    font-size: 1.5rem; 
+    color: #475569; 
+    cursor: pointer; 
+    transition: color 0.2s; 
+    padding: 0; 
+    display: flex;
+    align-items: center;
+}
+
+.btn-toggle:hover { color: var(--accent-color); }
+
+.global-search { 
+    position: relative; 
+    width: 300px; 
+    margin-left: 1.5rem; 
+}
+
+.search-input { 
+    width: 100%; 
+    background-color: #f1f5f9; 
+    border: 1px solid transparent; 
+    border-radius: 50px; 
+    padding: 0.5rem 1rem 0.5rem 2.5rem; 
+    font-size: 0.85rem; 
+    color: #334155; 
+    transition: all 0.2s; 
+}
+
+.search-input:focus { 
+    background-color: #fff; 
+    border-color: #cbd5e1; 
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+    outline: none; 
+}
+
+.search-icon { 
+    position: absolute; 
+    left: 14px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    color: #94a3b8; 
+    font-size: 0.9rem; 
+}
+
+.search-shortcut { 
+    position: absolute; 
+    right: 12px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    background: #e2e8f0; 
+    color: #64748b; 
+    font-size: 0.7rem; 
+    font-weight: 700; 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+}
+
+.btn-icon { 
+    position: relative; 
+    background: #f1f5f9; 
+    border: none; 
+    color: #475569; 
+    font-size: 1.1rem; 
+    width: 38px; 
+    height: 38px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.2s; 
+}
+
+.btn-icon:hover { 
+    background-color: #e2e8f0; 
+    color: var(--accent-color); 
+}
+
+.badge-dot { 
+    position: absolute; 
+    top: 8px; 
+    right: 10px; 
+    width: 8px; 
+    height: 8px; 
+    background-color: #ef4444; 
+    border-radius: 50%; 
+    border: 2px solid #fff; 
+}
+
+.user-dropdown { 
+    display: flex; 
+    align-items: center; 
+    cursor: pointer;
+}
+
+.avatar-sm { 
+    width: 36px; 
+    height: 36px; 
+    background: linear-gradient(135deg, var(--accent-color), #2563eb); 
+    color: #fff; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1rem; 
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.content-body { 
+    padding: 2rem; 
+    flex-grow: 1; 
+}
+
+.footer { 
+    padding: 1.5rem 2rem; 
+    text-align: center; 
+    color: #94a3b8; 
+    font-size: 0.85rem; 
+}
 
 @media (max-width: 1023.98px) {
-    .sidebar { transform: translateX(-100%); box-shadow: none; }
-    .sidebar:not(.closed) { transform: translateX(0); box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar:not(.closed) { transform: translateX(0); }
     .main-wrapper { margin-left: 0 !important; width: 100% !important; }
     .topbar { padding: 0 1rem; }
-    .sidebar-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1045; backdrop-filter: blur(2px); opacity: 0; visibility: hidden; transition: 0.3s; }
+    .sidebar-backdrop { 
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100vw; height: 100vh; 
+        background: rgba(15, 23, 42, 0.4); 
+        z-index: 1045; 
+        backdrop-filter: blur(4px); 
+        opacity: 0; 
+        visibility: hidden; 
+        transition: all 0.3s ease; 
+    }
     .sidebar-backdrop.show { opacity: 1; visibility: visible; }
 }
-.custom-scroll::-webkit-scrollbar { width: 5px; }
-.custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
 </style>
