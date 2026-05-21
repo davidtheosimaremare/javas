@@ -177,6 +177,13 @@ onUnmounted(() => {
                     </li>
 
                     <li class="nav-item">
+                         <Link href="/admin/pages" class="nav-link" :class="{ 'active': isActive('/admin/pages') }" @click="handleNavClick">
+                            <div class="icon-wrapper"><i class="bi bi-file-earmark-richtext"></i></div>
+                            <span class="label">Page Creator</span>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
                          <Link href="/admin/career-list" class="nav-link" :class="{ 'active': isActive('/admin/career-list') }" @click="handleNavClick">
                             <div class="icon-wrapper"><i class="bi bi-person-workspace"></i></div>
                             <span class="label">Karir</span>

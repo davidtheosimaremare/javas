@@ -31,6 +31,9 @@ Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
+// CMS Pages
+Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');
+
 
 
 
@@ -205,6 +208,14 @@ Route::prefix('admin')->group(function () {
 
     
 
+
+    // Page Creator
+    Route::get('/pages', [App\Http\Controllers\Admin\PageController::class, 'index'])->name('admin.pages.index');
+    Route::get('/pages/create', [App\Http\Controllers\Admin\PageController::class, 'create'])->name('admin.pages.create');
+    Route::post('/pages', [App\Http\Controllers\Admin\PageController::class, 'store'])->name('admin.pages.store');
+    Route::get('/pages/{id}/edit', [App\Http\Controllers\Admin\PageController::class, 'edit'])->name('admin.pages.edit');
+    Route::post('/pages/{id}', [App\Http\Controllers\Admin\PageController::class, 'update'])->name('admin.pages.update');
+    Route::delete('/pages/{id}', [App\Http\Controllers\Admin\PageController::class, 'destroy'])->name('admin.pages.destroy');
 
     });
 });
