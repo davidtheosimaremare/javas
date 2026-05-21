@@ -158,18 +158,20 @@ Route::prefix('admin')->group(function () {
 
 
 
+
     Route::get('/projects', [App\Http\Controllers\Admin\ProjectController::class, 'index'])->name('admin.projects.index');
     Route::get('/projects/create', [App\Http\Controllers\Admin\ProjectController::class, 'create'])->name('admin.projects.create');
     Route::post('/projects', [App\Http\Controllers\Admin\ProjectController::class, 'store'])->name('admin.projects.store');
+
+    // Sub-resources WAJIB di atas route {id} agar tidak bentrok
+    Route::delete('/projects/gallery/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyGallery'])->name('admin.projects.gallery.destroy');
+    Route::delete('/projects/testimonial/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyTestimonial'])->name('admin.projects.testimonial.destroy');
+
+    // Dynamic {id} routes HARUS di bawah route static
     Route::get('/projects/{id}/edit', [App\Http\Controllers\Admin\ProjectController::class, 'edit'])->name('admin.projects.edit');
-    // Gunakan POST untuk update karena ada file (method spoofing _method: PUT)
     Route::post('/projects/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'update'])->name('admin.projects.update');
     Route::delete('/projects/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroy'])->name('admin.projects.destroy');
-    
-    // Project Gallery & Testimonial Routes
-    Route::delete('/projects/gallery/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyGallery'])->name('admin.projects.gallery.destroy');
     Route::post('/projects/{id}/testimonial', [App\Http\Controllers\Admin\ProjectController::class, 'storeTestimonial'])->name('admin.projects.testimonial.store');
-    Route::delete('/projects/testimonial/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyTestimonial'])->name('admin.projects.testimonial.destroy');
     
     
 
