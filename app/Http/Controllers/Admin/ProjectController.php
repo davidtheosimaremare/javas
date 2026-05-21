@@ -77,7 +77,7 @@ class ProjectController extends Controller
         foreach($project->galleries as $gal) $this->deleteFile($gal->image_path);
         foreach($project->testimonials as $testi) $this->deleteFile($testi->avatar);
         $project->delete();
-        return redirect()->back()->with('success', 'Proyek dihapus.');
+        return redirect()->route('admin.projects.index')->with('success', 'Proyek dihapus.');
     }
 
     // ... (Sisa private function dan helper tetap sama) ...
@@ -138,7 +138,34 @@ class ProjectController extends Controller
         if (file_exists($absPath)) @unlink($absPath);
     }
     
-    public function destroyGallery($id) { /* ... code lama ... */ }
-    public function destroyTestimonial($id) { /* ... code lama ... */ }
-    public function storeTestimonial(Request $request, $projectId) { /* ... code lama ... */ }
+    public function destroyGallery($id) {
+        $gallery = ProjectGallery::findOrFail($id);
+        $this->deleteFile($gallery->image_path);
+        $gallery->delete();
+        return redirect()->back()->with('success', 'Foto galeri dihapus.');
+    }
+
+    public function destroyTestimonial($id) {
+        $testi = ProjectTestimonial::findOrFail($id);
+        $this->deleteFile($testi->avatar);
+        $testi->delete();
+        return redirect()->back()->with('success', 'Testimoni dihapus.');
+    }
+
+    public function storeTestimonial(Request $request, $projectId) {
+        $request->validate([
+            'name' => 'required|string',
+            'position' => 'required|string',
+            'quote' => 'required|string',
+            'avatar' => 'nullable|image|max:2048'
+        ]);
+
+        $data = $request->only(['name', 'position', 'quote']);
+        if ($request->hasFile('avatar')) {
+            $data['avatar'] = $this->uploadFile($request->file('avatar'), 'projects/testimonials');
+        }
+
+        ProjectTestimonial::create(array_merge($data, ['project_id' => $projectId]));
+        return redirect()->back()->with('success', 'Testimoni ditambahkan.');
+    }
 }

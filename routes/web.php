@@ -163,6 +163,11 @@ Route::prefix('admin')->group(function () {
     Route::post('/projects/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'update'])->name('admin.projects.update');
     Route::delete('/projects/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroy'])->name('admin.projects.destroy');
     
+    // Project Gallery & Testimonial Routes
+    Route::delete('/projects/gallery/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyGallery'])->name('admin.projects.gallery.destroy');
+    Route::post('/projects/{id}/testimonial', [App\Http\Controllers\Admin\ProjectController::class, 'storeTestimonial'])->name('admin.projects.testimonial.store');
+    Route::delete('/projects/testimonial/{id}', [App\Http\Controllers\Admin\ProjectController::class, 'destroyTestimonial'])->name('admin.projects.testimonial.destroy');
+    
     
 
 
