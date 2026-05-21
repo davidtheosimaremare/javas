@@ -11,7 +11,7 @@ const rawLinks = computed(() => page.props.globalData?.footerLinks || {});
 
 // 3. Helper: Resolve Logo (Cek apakah dari Storage atau Public Images)
 const logoSrc = computed(() => {
-    const dbLogo = profile.value.logo_secondary;
+    const dbLogo = profile.value.logo_primary;
     if (dbLogo) {
         // Jika path mengandung 'images/' atau 'http', itu file statis/link luar
         // Jika tidak, tambahkan '/storage/'
@@ -57,7 +57,7 @@ const currentYear = new Date().getFullYear();
 
           <div class="contact-info text-white fs-7">
             <p class="mb-4" style="line-height: 1.6;">
-                {{ profile.company_description ? profile.company_description.substring(0, 160) + '' : 'Solusi infrastruktur kelistrikan terpercaya.' }}
+                {{ profile.company_description || 'Solusi infrastruktur kelistrikan terpercaya.' }}
             </p>
             
             <div class="d-flex mb-3">
@@ -138,7 +138,8 @@ const currentYear = new Date().getFullYear();
       <div class="row align-items-center">
         <div class="col-md-6 text-center text-md-start">
           <p class="copyright-text mb-0">
-            &copy; {{ currentYear }} <strong>{{ profile.company_name || 'PT JBB Javas Berkah Bistari' }}</strong>. All Rights Reserved.
+            <span v-if="profile.footer_text">{{ profile.footer_text }}</span>
+            <span v-else>&copy; {{ currentYear }} <strong>PT Javas Berkah Bistari</strong>. All Rights Reserved.</span>
           </p>
         </div>
         <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">

@@ -46,6 +46,7 @@ class HomeEditorController extends Controller
             'nav_title' => 'required|string',
             'description' => 'required|string',
             'image' => 'nullable|image|max:5120', 
+            'image_mobile' => 'nullable|image|max:5120',
         ]);
 
         if ($request->hasFile('image')) {
@@ -70,6 +71,30 @@ class HomeEditorController extends Controller
                 file_put_contents(storage_path('logs/upload_error.log'), $e->getMessage() . "\n" . $e->getTraceAsString());
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'image' => 'Gagal mengunggah gambar ke server: ' . $e->getMessage()
+                ]);
+            }
+        }
+
+        if ($request->hasFile('image_mobile')) {
+            $file = $request->file('image_mobile');
+            
+            $cleanTitle = preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', strtolower($request->title)));
+            $cleanTitle = substr($cleanTitle, 0, 30);
+
+            $extension = $file->getClientOriginalExtension();
+            if (empty($extension)) {
+                $extension = $file->guessExtension() ?? 'jpg';
+            }
+
+            $fileName = $cleanTitle . '-mobile-' . time() . '.' . $extension;
+
+            try {
+                $this->deleteOldFile($slider->image_mobile);
+                $slider->image_mobile = $this->manualUpload($file, 'sliders', $fileName);
+            } catch (\Throwable $e) {
+                file_put_contents(storage_path('logs/upload_error.log'), $e->getMessage() . "\n" . $e->getTraceAsString());
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'image_mobile' => 'Gagal mengunggah gambar mobile ke server: ' . $e->getMessage()
                 ]);
             }
         }

@@ -30,6 +30,7 @@ class HomeController extends Controller
                     'desc' => $slide->description,
                     'navTitle' => $slide->nav_title,
                     'image' => $slide->image,
+                    'image_mobile' => $slide->image_mobile,
                     'link' => $slide->link,
                 ];
             });

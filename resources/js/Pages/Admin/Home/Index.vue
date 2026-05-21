@@ -43,11 +43,13 @@ const previewImage = ref(null)
 const showCropperModal = ref(false)
 const cropperImgSrc = ref(null)
 const cropperRef = ref(null)
+const cropperTarget = ref('image') // 'image' atau 'image_mobile'
+const previewImageMobile = ref(null)
 
 // --- FORMS ---
 const form = useForm({
     _method: 'POST',
-    title: '', description: '', nav_title: '', image: null, link: '', 
+    title: '', description: '', nav_title: '', image: null, image_mobile: null, link: '', 
     color: '', value: '', label: '', order: 0, is_active: 1
 })
 
@@ -78,7 +80,7 @@ function getImgUrl(path) {
 }
 
 // Crop Logic
-const cropAspectRatio = computed(() => modalType.value === 'service' ? 9/16 : 16/9)
+const cropAspectRatio = computed(() => modalType.value === 'service' || cropperTarget.value === 'image_mobile' ? 9/16 : 16/9)
 const cropStencilProps = computed(() => ({ aspectRatio: cropAspectRatio.value }))
 
 // Actions
@@ -114,17 +116,40 @@ const openEditModal = (type, item) => {
     form.link = item.link || ''; form.color = item.color || '#002b49'; form.value = item.value || ''; form.label = item.label || ''
     form.order = item.order || 0; form.is_active = item.is_active ? 1 : 0
     form.image = null 
+    form.image_mobile = null
     
     previewImage.value = item.image ? getImgUrl(item.image) : null
+    previewImageMobile.value = item.image_mobile ? getImgUrl(item.image_mobile) : null
     isModalOpen.value = true
 }
 
-const closeModal = () => { isModalOpen.value = false; editingItem.value = null; previewImage.value = null; }
+const closeModal = () => { isModalOpen.value = false; editingItem.value = null; previewImage.value = null; previewImageMobile.value = null; }
 
-const handleImageUpload = (e) => {
-    const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { cropperImgSrc.value = ev.target.result; showCropperModal.value = true; e.target.value = null }; reader.readAsDataURL(file) }
+const handleImageUpload = (e, target = 'image') => {
+    const file = e.target.files[0]; 
+    if (file) { 
+        cropperTarget.value = target;
+        const reader = new FileReader(); 
+        reader.onload = (ev) => { cropperImgSrc.value = ev.target.result; showCropperModal.value = true; e.target.value = null }; 
+        reader.readAsDataURL(file) 
+    }
 }
-const cropImage = () => { const { canvas } = cropperRef.value.getResult(); if (canvas) { canvas.toBlob((blob) => { const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' }); form.image = file; previewImage.value = URL.createObjectURL(blob); cancelCrop() }, 'image/jpeg', 0.9) } }
+const cropImage = () => { 
+    const { canvas } = cropperRef.value.getResult(); 
+    if (canvas) { 
+        canvas.toBlob((blob) => { 
+            const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' }); 
+            if (cropperTarget.value === 'image_mobile') {
+                form.image_mobile = file; 
+                previewImageMobile.value = URL.createObjectURL(blob); 
+            } else {
+                form.image = file; 
+                previewImage.value = URL.createObjectURL(blob); 
+            }
+            cancelCrop() 
+        }, 'image/jpeg', 0.9) 
+    } 
+}
 const cancelCrop = () => { showCropperModal.value = false; cropperImgSrc.value = null }
 const onDragChange = () => { router.post('/admin/home-editor/slider/reorder', { items: sliderList.value }, { preserveScroll: true }) }
 
@@ -333,7 +358,7 @@ const gridClass = computed(() => {
                     
                          <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">
-                                {{ modalType === 'service' ? 'GAMBAR (Wajib 9:16 Tegak)' : 'GAMBAR (16:9)' }}
+                                {{ modalType === 'service' ? 'GAMBAR (Wajib 9:16 Tegak)' : 'GAMBAR DEKSTOP (16:9)' }}
                             </label>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="preview-box border rounded overflow-hidden bg-light position-relative" 
@@ -342,8 +367,22 @@ const gridClass = computed(() => {
                                     <div v-else class="w-100 h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-image"></i></div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <input @change="handleImageUpload" type="file" class="form-control form-control-sm" accept="image/*" id="fileInputBtn">
+                                    <input @change="(e) => handleImageUpload(e, 'image')" type="file" class="form-control form-control-sm" accept="image/*" id="fileInputBtn">
                                     <small class="text-muted d-block mt-1" style="font-size: 0.7rem">Pilih gambar, lalu potong.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" v-if="modalType === 'slider'">
+                            <label class="form-label small fw-bold text-muted">GAMBAR KHUSUS MOBILE (Wajib 9:16 Tegak)</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="preview-box border rounded overflow-hidden bg-light position-relative" style="width: 60px; height: 106px;">
+                                    <img v-if="previewImageMobile" :src="previewImageMobile" class="w-100 h-100 object-fit-cover">
+                                    <div v-else class="w-100 h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-phone"></i></div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input @change="(e) => handleImageUpload(e, 'image_mobile')" type="file" class="form-control form-control-sm" accept="image/*">
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem">Pilih gambar untuk mobile, lalu potong.</small>
                                 </div>
                             </div>
                         </div>
@@ -382,7 +421,7 @@ const gridClass = computed(() => {
     <div v-if="showCropperModal" class="modal-backdrop-custom d-flex align-items-center justify-content-center p-3" style="z-index: 1060;">
         <div class="modal-content-custom bg-white rounded-4 shadow-lg w-100 overflow-hidden" style="max-width: 600px;">
             <div class="modal-header px-4 py-3 bg-navy text-white d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold m-0">Potong Gambar ({{ modalType === 'service' ? '9:16' : '16:9' }})</h6>
+                <h6 class="fw-bold m-0">Potong Gambar ({{ cropAspectRatio === 9/16 ? '9:16' : '16:9' }})</h6>
                 <button @click="cancelCrop" class="btn-close btn-close-white"></button>
             </div>
             <div class="modal-body p-0 bg-dark">

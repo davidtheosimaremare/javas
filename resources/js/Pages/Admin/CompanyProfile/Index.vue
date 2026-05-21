@@ -42,6 +42,7 @@ const form = useForm({
     logo_primary: null, // File fisik (untuk dikirim ke backend)
     logo_secondary: null,
     favicon: null,
+    footer_text: props.profile?.footer_text || '',
     social_media: {
         facebook: props.profile?.social_media?.facebook || '',
         instagram: props.profile?.social_media?.instagram || '',
@@ -211,6 +212,12 @@ const submit = () => {
                         <div class="col-12">
                             <label class="form-label fw-bold text-navy">Tentang Perusahaan (Singkat)</label>
                             <textarea v-model="form.company_description" class="form-control" rows="5" placeholder="Deskripsi singkat untuk footer atau meta description..."></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-navy">Teks Footer</label>
+                            <input v-model="form.footer_text" type="text" class="form-control" placeholder="© 2026 PT Javas Berkah Bistari. All Rights Reserved.">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem">Kosongkan untuk menggunakan teks default.</small>
                         </div>
                     </div>
 

@@ -52,7 +52,7 @@ const onAutoplayTimeLeft = (swiper, time, progress) => {
       @autoplayTimeLeft="onAutoplayTimeLeft"
     >
       <swiper-slide v-for="slide in slides" :key="slide.id">
-        <div class="slide-content" :style="{ backgroundImage: `url(${slide.image})` }">
+        <div class="slide-content" :style="{ '--bg-desktop': `url(${slide.image})`, '--bg-mobile': `url(${slide.image_mobile || slide.image})` }">
           <div class="container px-4 px-lg-4">
             
             <h1 class="mainTitle">{{ slide.title }}</h1>
@@ -116,6 +116,7 @@ const onAutoplayTimeLeft = (swiper, time, progress) => {
   z-index: 1;
   width: 100%;
   height: 100%;
+  background-image: var(--bg-desktop);
   background-size: cover;
   background-position: center;
   display: flex;
@@ -286,6 +287,7 @@ const onAutoplayTimeLeft = (swiper, time, progress) => {
 
 @media (max-width: 768px) {
   .hero-slider { height: 100vh; margin-top: 0; }
+  .slide-content { background-image: var(--bg-mobile) !important; }
   .mainTitle { font-size: 2rem; margin-top: 0; max-width: 100%; }
   .slide-desc { font-size: 1rem; max-width: 100%; }
   

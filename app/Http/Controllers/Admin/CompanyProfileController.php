@@ -37,7 +37,8 @@ class CompanyProfileController extends Controller
             'logo_primary' => 'nullable|image|max:2048',
             'logo_secondary' => 'nullable|image|max:2048',
             'favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:1024',
-            'social_media' => 'nullable|array'
+            'social_media' => 'nullable|array',
+            'footer_text' => 'nullable|string'
         ]);
 
         // Handle File Upload Logo Primary
@@ -63,6 +64,7 @@ class CompanyProfileController extends Controller
         $profile->company_email = $validated['company_email'];
         $profile->company_address = $validated['company_address'];
         $profile->phone_number = $validated['phone_number'];
+        $profile->footer_text = $validated['footer_text'] ?? null;
         
         // Simpan Social Media sebagai JSON
         $profile->social_media = json_encode($request->social_media);
