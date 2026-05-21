@@ -119,9 +119,14 @@ class ProjectController extends Controller
 
     private function handleRelations($request, $project) {
         if ($request->hasFile('new_gallery_images')) {
-            foreach ($request->file('new_gallery_images') as $file) {
-                $path = $this->uploadFile($file, 'projects/gallery');
-                $project->galleries()->create(['image_path' => $path]);
+            $files = $request->file('new_gallery_images');
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    if ($file && $file->isValid()) {
+                        $path = $this->uploadFile($file, 'projects/gallery');
+                        $project->galleries()->create(['image_path' => $path]);
+                    }
+                }
             }
         }
     }
