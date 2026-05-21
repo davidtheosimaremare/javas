@@ -111,8 +111,9 @@ const submit = () => {
         onSuccess: () => {
             Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data proyek berhasil disimpan!', timer: 2000, showConfirmButton: false })
         },
-        onError: () => {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Periksa kembali inputan Anda.' })
+        onError: (errors) => {
+            const errorMessages = Object.values(errors).join('<br>');
+            Swal.fire({ icon: 'error', title: 'Gagal', html: errorMessages || 'Periksa kembali inputan Anda.' })
         }
     })
 }
@@ -172,7 +173,11 @@ const quillToolbar = [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 
             <form @submit.prevent="submit">
                 
                 <div v-show="activeTab === 'info'" class="row g-3">
-                    <div class="col-md-8"><label class="form-label fw-bold">Judul Proyek</label><input v-model="form.title" type="text" class="form-control" required placeholder="Nama Proyek..."></div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Judul Proyek</label>
+                        <input v-model="form.title" type="text" class="form-control" required placeholder="Nama Proyek...">
+                        <div v-if="form.errors.title" class="text-danger small mt-1">{{ form.errors.title }}</div>
+                    </div>
                     <div class="col-md-4"><label class="form-label fw-bold">Status</label><select v-model="form.status" class="form-select"><option value="Completed">Completed (Selesai)</option><option value="On Progress">On Progress (Berjalan)</option></select></div>
                     <div class="col-md-4"><label class="form-label fw-bold">Klien</label><input v-model="form.client" type="text" class="form-control" placeholder="Nama PT/Instansi"></div>
                     <div class="col-md-4"><label class="form-label fw-bold">Tahun</label><input v-model="form.year" type="text" class="form-control" placeholder="2024"></div>
@@ -186,6 +191,7 @@ const quillToolbar = [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 
                             </div>
                             <input type="file" class="form-control w-auto" @change="handleHeroUpload" accept="image/*">
                         </div>
+                        <div v-if="form.errors.hero_image" class="text-danger small mt-1">{{ form.errors.hero_image }}</div>
                     </div>
                     <div class="col-md-4 mt-3"><label class="form-label fw-bold">Visibilitas</label><select v-model="form.is_active" class="form-select"><option :value="1">Tampilkan (Public)</option><option :value="0">Sembunyikan (Draft)</option></select></div>
                 </div>

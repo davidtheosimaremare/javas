@@ -46,6 +46,10 @@ class ProjectController extends Controller
     
     public function store(Request $request)
     {
+        $request->validate([
+            'hero_image' => 'required|image|max:5120'
+        ]);
+        
         $data = $this->validateProject($request);
         if ($request->hasFile('hero_image')) {
             $data['hero_image'] = $this->uploadFile($request->file('hero_image'), 'projects/hero');
@@ -84,7 +88,7 @@ class ProjectController extends Controller
     private function validateProject($request) {
         return $request->validate([
             'title' => 'required|string',
-            'overview' => 'required|string',
+            'overview' => 'nullable|string',
             'client' => 'nullable|string',
             'location' => 'nullable|string',
             'category' => 'nullable|string',
