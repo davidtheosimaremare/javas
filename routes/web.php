@@ -71,7 +71,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
         Route::get('/company-profile', [CompanyProfileController::class, 'index'])->name('admin.company.index');
-    Route::post('/company-profile', [CompanyProfileController::class, 'update'])->name('admin.company.update');
+        Route::post('/company-profile', [CompanyProfileController::class, 'update'])->name('admin.company.update');
+        Route::post('/company-profile/footer-links', [CompanyProfileController::class, 'storeFooterLink'])->name('admin.company.footer.store');
+        Route::put('/company-profile/footer-links/{id}', [CompanyProfileController::class, 'updateFooterLink'])->name('admin.company.footer.update');
+        Route::delete('/company-profile/footer-links/{id}', [CompanyProfileController::class, 'destroyFooterLink'])->name('admin.company.footer.destroy');
 
         // Home Editor Routes
 

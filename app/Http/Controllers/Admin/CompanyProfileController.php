@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyProfile;
+use App\Models\Footer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -19,8 +20,11 @@ class CompanyProfileController extends Controller
             $profile->social_media = json_decode($profile->social_media, true);
         }
 
+        $footerLinks = Footer::orderBy('type')->orderBy('order', 'asc')->get();
+
         return Inertia::render('Admin/CompanyProfile/Index', [
-            'profile' => $profile
+            'profile' => $profile,
+            'footerLinks' => $footerLinks
         ]);
     }
 
@@ -72,5 +76,47 @@ class CompanyProfileController extends Controller
         $profile->save();
 
         return redirect()->back()->with('success', 'Profil Perusahaan berhasil diperbarui.');
+    }
+
+    public function storeFooterLink(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|string',
+            'name' => 'required|string',
+            'url' => 'required|string',
+        ]);
+
+        $maxOrder = Footer::where('type', $request->type)->max('order') ?? 0;
+
+        Footer::create([
+            'type' => $request->type,
+            'name' => $request->name,
+            'url' => $request->url,
+            'order' => $maxOrder + 1,
+        ]);
+
+        return redirect()->back()->with('success', 'Tautan footer berhasil ditambahkan.');
+    }
+
+    public function updateFooterLink(Request $request, $id)
+    {
+        $link = Footer::findOrFail($id);
+
+        $request->validate([
+            'type' => 'required|string',
+            'name' => 'required|string',
+            'url' => 'required|string',
+            'order' => 'integer',
+        ]);
+
+        $link->update($request->only('type', 'name', 'url', 'order'));
+
+        return redirect()->back()->with('success', 'Tautan footer berhasil diperbarui.');
+    }
+
+    public function destroyFooterLink($id)
+    {
+        Footer::findOrFail($id)->delete();
+        return redirect()->back()->with('success', 'Tautan footer berhasil dihapus.');
     }
 }

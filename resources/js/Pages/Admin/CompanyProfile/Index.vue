@@ -1,10 +1,14 @@
 <script setup>
 import { ref } from 'vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
 const props = defineProps({
-    profile: Object
+    profile: Object,
+    footerLinks: {
+        type: Array,
+        default: () => []
+    }
 })
 
 // --- HELPER: RESOLVE IMAGE URL ---
@@ -93,6 +97,57 @@ const submit = () => {
             console.error("Gagal simpan:", errors)
         }
     })
+}
+
+// --- FOOTER LINKS LOGIC ---
+const isFooterModalOpen = ref(false)
+const editingFooterId = ref(null)
+const footerForm = useForm({
+    type: 'internal',
+    name: '',
+    url: ''
+})
+
+const openFooterModal = (link = null) => {
+    footerForm.clearErrors()
+    if (link) {
+        editingFooterId.value = link.id
+        footerForm.type = link.type
+        footerForm.name = link.name
+        footerForm.url = link.url
+    } else {
+        editingFooterId.value = null
+        footerForm.reset()
+    }
+    isFooterModalOpen.value = true
+}
+
+const closeFooterModal = () => {
+    isFooterModalOpen.value = false
+    editingFooterId.value = null
+    footerForm.reset()
+}
+
+const submitFooterLink = () => {
+    if (editingFooterId.value) {
+        footerForm.put(`/admin/company-profile/footer-links/${editingFooterId.value}`, {
+            preserveScroll: true,
+            onSuccess: () => closeFooterModal()
+        })
+    } else {
+        footerForm.post('/admin/company-profile/footer-links', {
+            preserveScroll: true,
+            onSuccess: () => closeFooterModal()
+        })
+    }
+}
+
+const deleteFooterLink = (id) => {
+    if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
+        router.delete(`/admin/company-profile/footer-links/${id}`, {
+            preserveScroll: true
+        })
+    }
 }
 
 </script>
@@ -232,7 +287,91 @@ const submit = () => {
 
         </div>
 
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="card-title mb-0">Manajemen Tautan Footer</h6>
+                        <button @click="openFooterModal()" class="btn btn-sm btn-navy rounded-pill px-3">
+                            <i class="bi bi-plus-lg"></i> Tambah Tautan
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3">Kategori</th>
+                                    <th>Nama Tautan</th>
+                                    <th>URL Tujuan</th>
+                                    <th class="text-end pe-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="link in footerLinks" :key="link.id">
+                                    <td class="ps-3">
+                                        <span class="badge rounded-pill" :class="link.type === 'internal' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info'">
+                                            {{ link.type === 'internal' ? 'Navigasi' : (link.type === 'service' ? 'Layanan' : link.type) }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold text-slate-800">{{ link.name }}</td>
+                                    <td><a :href="link.url" target="_blank" class="text-decoration-none text-navy">{{ link.url }}</a></td>
+                                    <td class="text-end pe-3">
+                                        <button @click="openFooterModal(link)" class="btn btn-sm btn-light border rounded-circle me-2"><i class="bi bi-pencil"></i></button>
+                                        <button @click="deleteFooterLink(link.id)" class="btn btn-sm btn-light border rounded-circle text-danger"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr v-if="!footerLinks.length">
+                                    <td colspan="4" class="text-center py-4 text-muted">Belum ada tautan footer.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </AdminLayout>
+
+    <div v-if="isFooterModalOpen" class="modal-backdrop-custom d-flex align-items-center justify-content-center p-3" style="z-index: 1050;">
+        <div class="modal-content-custom bg-white rounded-4 shadow-lg w-100" style="max-width: 500px;">
+            <div class="modal-header px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold m-0 text-navy">{{ editingFooterId ? 'Edit' : 'Tambah' }} Tautan Footer</h5>
+                <button @click="closeFooterModal" class="btn-close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form @submit.prevent="submitFooterLink">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-navy">Kategori (Kolom)</label>
+                        <select v-model="footerForm.type" class="form-select">
+                            <option value="internal">Navigasi (Kolom 1)</option>
+                            <option value="service">Layanan (Kolom 2)</option>
+                            <option value="partner">Partner/Lainnya</option>
+                        </select>
+                        <div v-if="footerForm.errors.type" class="text-danger small mt-1">{{ footerForm.errors.type }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-navy">Nama Tautan</label>
+                        <input v-model="footerForm.name" type="text" class="form-control" placeholder="Contoh: About Us">
+                        <div v-if="footerForm.errors.name" class="text-danger small mt-1">{{ footerForm.errors.name }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-navy">URL Tujuan</label>
+                        <input v-model="footerForm.url" type="text" class="form-control" placeholder="Contoh: /about">
+                        <div v-if="footerForm.errors.url" class="text-danger small mt-1">{{ footerForm.errors.url }}</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" @click="closeFooterModal" class="btn btn-light border rounded-pill px-4">Batal</button>
+                        <button type="submit" class="btn btn-navy rounded-pill px-4" :disabled="footerForm.processing">
+                            {{ footerForm.processing ? 'Menyimpan...' : 'Simpan' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <style scoped>
@@ -324,4 +463,15 @@ const submit = () => {
 @media (max-width: 768px) {
     .content-card { padding: 1.25rem; }
 }
+
+/* Modals & Tables */
+.modal-backdrop-custom { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+.modal-content-custom { animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.custom-table thead th { font-size: 0.8rem; font-weight: 700; color: #64748b; border-bottom: 1px solid #f1f5f9; }
+.custom-table td { padding: 1rem; border-bottom: 1px solid #f8fafc; font-size: 0.9rem; }
+.bg-primary-subtle { background-color: #cfe2ff !important; }
+.text-primary { color: #084298 !important; }
+.bg-info-subtle { background-color: #cff4fc !important; }
+.text-info { color: #055160 !important; }
 </style>
