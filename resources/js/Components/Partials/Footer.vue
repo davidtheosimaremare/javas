@@ -90,7 +90,7 @@ const currentYear = new Date().getFullYear();
           
           <ul class="footer-links list-unstyled" v-if="internalLinks.length > 0">
             <li v-for="link in internalLinks" :key="link.id">
-              <Link :href="link.url">{{ link.title }}</Link> 
+              <Link :href="link.url">{{ link.name }}</Link> 
             </li>
           </ul>
 
@@ -108,7 +108,7 @@ const currentYear = new Date().getFullYear();
           
           <ul class="footer-links list-unstyled" v-if="serviceLinks.length > 0">
             <li v-for="link in serviceLinks" :key="link.id">
-                <a :href="link.url">{{ link.title }}</a>
+                <a :href="link.url">{{ link.name }}</a>
             </li>
           </ul>
 
