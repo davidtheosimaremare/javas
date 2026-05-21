@@ -17,6 +17,19 @@ const logoColor = computed(() => {
     : '/images/logo.png'
 })
 
+// --- CONTACT INFO ---
+const profile = computed(() => page.props.globalData?.profile || {})
+
+const displayPhone = computed(() => profile.value.phone_number || '+62 812-4900-9899')
+const whatsappUrl = computed(() => {
+    let phone = displayPhone.value.replace(/\D/g, '')
+    if (phone.startsWith('0')) phone = '62' + phone.substring(1)
+    return `https://wa.me/${phone}`
+})
+
+const displayEmail = computed(() => profile.value.company_email || 'info@jbb.co.id')
+const emailUrl = computed(() => `mailto:${displayEmail.value}`)
+
 // Bendera
 const indoFlag = '/images/indo-flag.png'
 const engFlag = '/images/en-flag.png' // <-- BARU: Tambahkan ini (pastikan file ada di folder public/images)
@@ -266,13 +279,13 @@ onUnmounted(() => {
           <button class="modal-close-icon" @click="closeContactModal">&times;</button>
           <h4 class="text-blue fw-bold mb-4 text-center">Pilih Metode Kontak</h4>
           <div class="d-grid gap-3">
-            <a href="https://wa.me/6281249009899" target="_blank" class="btn btn-whatsapp py-3">
+            <a :href="whatsappUrl" target="_blank" class="btn btn-whatsapp py-3">
               <i class="bi bi-whatsapp me-2 fs-5"></i>
-              <div><span class="d-block fw-bold">Chat WhatsApp</span><small>+62 812-4900-9899</small></div>
+              <div><span class="d-block fw-bold">Chat WhatsApp</span><small>{{ displayPhone }}</small></div>
             </a>
-            <a href="mailto:info@jbb.co.id" class="btn btn-email py-3">
+            <a :href="emailUrl" class="btn btn-email py-3">
               <i class="bi bi-envelope-at-fill me-2 fs-5"></i>
-              <div><span class="d-block fw-bold">Kirim Email</span><small>info@jbb.co.id</small></div>
+              <div><span class="d-block fw-bold">Kirim Email</span><small>{{ displayEmail }}</small></div>
             </a>
           </div>
           <div class="text-center mt-4"><small class="text-muted">Senin - Jumat | 08.00 - 17.00 WIB</small></div>
