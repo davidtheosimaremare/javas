@@ -47,7 +47,11 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'hero_image' => 'nullable|image|max:5120'
+            'hero_image' => 'nullable|image|max:10240'
+        ], [
+            'hero_image.max' => 'Kapasitas gambar tidak boleh melebihi 10MB.',
+            'hero_image.uploaded' => 'Gagal mengunggah gambar. Pastikan kapasitas gambar tidak melebihi 10MB.',
+            'hero_image.image' => 'File yang diunggah harus berupa gambar.'
         ]);
         
         $data = $this->validateProject($request);
@@ -63,6 +67,15 @@ class ProjectController extends Controller
     public function update(Request $request, $id)
     {
         $project = Project::findOrFail($id);
+        
+        $request->validate([
+            'hero_image' => 'nullable|image|max:10240'
+        ], [
+            'hero_image.max' => 'Kapasitas gambar tidak boleh melebihi 10MB.',
+            'hero_image.uploaded' => 'Gagal mengunggah gambar. Pastikan kapasitas gambar tidak melebihi 10MB.',
+            'hero_image.image' => 'File yang diunggah harus berupa gambar.'
+        ]);
+
         $data = $this->validateProject($request);
         if ($request->hasFile('hero_image')) {
             $this->deleteFile($project->hero_image);
