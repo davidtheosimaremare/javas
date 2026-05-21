@@ -180,7 +180,7 @@ const deleteFooterLink = (id) => {
                     
                     <div class="mb-4 text-center">
                         <label class="form-label small fw-bold text-muted text-uppercase">Logo Utama (Light/White)</label>
-                        <div class="logo-preview-box bg-light  mb-2">
+                        <div class="logo-preview-box bg-navy mb-2 border">
                             <img v-if="logoPrimaryPreview" :src="logoPrimaryPreview" class="img-fluid logo-img">
                             <span v-else class="text-white-50 small">Belum ada logo</span>
                         </div>
@@ -192,7 +192,7 @@ const deleteFooterLink = (id) => {
 
                     <div class="mb-2 text-center">
                         <label class="form-label small fw-bold text-muted text-uppercase">Logo Sekunder (Dark/Color)</label>
-                        <div class="logo-preview-box bg-navy mb-2 border">
+                        <div class="logo-preview-box bg-light mb-2 border">
                             <img v-if="logoSecondaryPreview" :src="logoSecondaryPreview" class="img-fluid logo-img">
                             <span v-else class="text-muted small">Belum ada logo</span>
                         </div>
